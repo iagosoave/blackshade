@@ -1,6 +1,8 @@
+import React from 'react';
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// Importe seus componentes e hooks
 import Logo from './components/Logo';
 import Menu from './components/Menu';
 import LanguageSwitcher from './components/LanguageSwitcher';
@@ -17,9 +19,7 @@ const useIsMobile = (breakpoint = 768) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < breakpoint);
 
   useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < breakpoint);
-    };
+    const handleResize = () => setIsMobile(window.innerWidth < breakpoint);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [breakpoint]);
@@ -27,119 +27,153 @@ const useIsMobile = (breakpoint = 768) => {
   return isMobile;
 };
 
-// --- Animação de Intro (Corrigida) ---
+// --- Animação de Intro OTIMIZADA ---
 const IntroAnimation = ({ onAnimationComplete }) => {
+  useEffect(() => {
+    // Reduz o tempo da intro para 1.5s (era 2.5s)
+    const timer = setTimeout(onAnimationComplete, 1500);
+    return () => clearTimeout(timer);
+  }, [onAnimationComplete]);
+
   return (
     <motion.div
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.5 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black"
+      exit={{ x: '-100%', transition: { duration: 0.8, ease: [0.76, 0, 0.24, 1] } }}
     >
       <motion.img
         src={logo}
-        alt="Logo"
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 1, delay: 0.5 }}
-        onAnimationComplete={onAnimationComplete} // Callback de conclusão foi movido para a animação real
+        alt="BLACKSHADE"
+        className="h-24 md:h-32"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1, transition: { duration: 0.5, delay: 0.2 } }}
       />
     </motion.div>
   );
 };
 
-// --- Componente de Vídeo Otimizado (Corrigido) ---
-const OptimizedVideo = ({ vimeoId, isMobile, isReady }) => {
-  // Container que controla a visibilidade e o posicionamento de fundo
-  const containerStyle = {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    zIndex: -1, // Garante que o vídeo fique no fundo de todo o conteúdo
-    opacity: isReady ? 1 : 0,
-    transition: 'opacity 0.7s ease-in-out',
-    backgroundColor: 'black',
-    overflow: 'hidden', // Previne barras de rolagem
-  };
-
-  const iframeStyle = {
+// --- Componente de Vídeo ULTRA OTIMIZADO ---
+const OptimizedVideo = ({ vimeoId, isMobile }) => {
+  const [videoState, setVideoState] = useState('loading');
+  
+  // Estilos do iframe
+  const iframeStyle = isMobile ? {
+    position: 'absolute',
+    top: '50%',
+    left: '60%',
+    width: '600vw',
+    height: '400vh',
+    transform: 'translate(-50%, -50%)',
+    pointerEvents: 'none',
+  } : {
     position: 'absolute',
     top: '50%',
     left: '50%',
-    width: isMobile ? '300vw' : '150vw',
-    height: isMobile ? '300vh' : '150vh',
-    transform: 'translate(-50%, -50%)',
+    width: '100vw',
+    height: '100vh',
+    transform: 'translate(-50%, -50%) scale(1.5)',
     pointerEvents: 'none',
   };
 
-  const videoParams = [
-    'autoplay=1', 'loop=1', 'autopause=0', 'muted=1', 'background=1',
-    'controls=0', 'sidedock=0', 'quality=auto', 'dnt=1', 'playsinline=1'
-  ].join('&');
+  if (!vimeoId) {
+    return (
+      <div className="w-full h-full bg-black" />
+    );
+  }
 
-  const embedUrl = vimeoId ? `https://player.vimeo.com/video/${vimeoId}?${videoParams}` : '';
+  // Parâmetros otimizados para carregamento instantâneo
+  const videoParams = [
+    'autoplay=1',
+    'loop=1',
+    'autopause=0',
+    'muted=1',
+    'background=1',
+    'controls=0',
+    'sidedock=0',
+    'quality=auto',
+    'responsive=1',
+    'dnt=1',
+    'playsinline=1',
+    'preload=auto', // Força preload
+    'speed=1' // Previne alterações de velocidade
+  ].join('&');
+  
+  const embedUrl = `https://player.vimeo.com/video/${vimeoId}?${videoParams}`;
 
   return (
-    <div style={containerStyle}>
-      {vimeoId && (
-        <iframe
-          src={embedUrl}
-          frameBorder="0"
-          allow="autoplay; picture-in-picture"
-          allowFullScreen
-          title="Background Video"
-          style={iframeStyle}
-          loading="eager" // Prioriza o carregamento do iframe
-        />
-      )}
-    </div>
+    <>
+      {/* Não mostrar loading - vai direto para o vídeo */}
+      <iframe
+        src={embedUrl}
+        frameBorder="0"
+        allow="autoplay; picture-in-picture"
+        allowFullScreen
+        title="Background Video"
+        className={`transition-opacity duration-300 ${
+          videoState === 'ready' ? 'opacity-100' : 'opacity-0'
+        }`}
+        style={iframeStyle}
+        onLoad={() => setVideoState('ready')}
+        importance="high"
+        loading="eager" // Força carregamento imediato
+      />
+    </>
   );
 };
 
-// --- Componente Principal (Corrigido) ---
+// --- Componente Principal OTIMIZADO ---
 export default function App() {
   const [activeModal, setActiveModal] = useState(null);
   const [language, setLanguage] = useState('pt');
   const [isVideoOpen, setIsVideoOpen] = useState(false);
   const [showIntro, setShowIntro] = useState(true);
   const [vimeoId, setVimeoId] = useState(null);
+  const [isAppReady, setIsAppReady] = useState(false);
 
   const isMobile = useIsMobile();
+  
+  // Carrega dados do Contentful com prioridade
   const { data: homepageData } = useContentful('homepage');
-
+  
   // Extrai o ID do Vimeo assim que os dados chegarem
   useEffect(() => {
     if (!homepageData) return;
-    const rawVideoSource = homepageData?.videoUrl || (homepageData?.backgroundVideo ? `https:${homepageData.backgroundVideo}` : null);
+
+    const rawVideoSource = homepageData?.videoUrl || 
+      (homepageData?.backgroundVideo ? `https:${homepageData.backgroundVideo}` : null);
+    
     if (rawVideoSource) {
+      // Regex otimizada para extrair ID do Vimeo
       const match = rawVideoSource.match(/vimeo\.com\/(?:video\/)?(\d+)/);
-      if (match) setVimeoId(match[1]);
+      if (match) {
+        setVimeoId(match[1]);
+      }
     }
   }, [homepageData]);
 
-  // Adiciona tags de preconnect para acelerar a conexão com o Vimeo
+  // Preconnect e prefetch para Vimeo - CRÍTICO para performance
   useEffect(() => {
+    // Preconnect com alta prioridade
     const links = [
       { rel: 'preconnect', href: 'https://player.vimeo.com', crossOrigin: 'anonymous' },
       { rel: 'preconnect', href: 'https://f.vimeocdn.com', crossOrigin: 'anonymous' },
-      { rel: 'preconnect', href: 'https://i.vimeocdn.com', crossOrigin: 'anonymous' }
+      { rel: 'preconnect', href: 'https://i.vimeocdn.com', crossOrigin: 'anonymous' },
+      { rel: 'dns-prefetch', href: 'https://vimeo.com' },
+      { rel: 'dns-prefetch', href: 'https://vimeocdn.com' }
     ];
+
     links.forEach(({ rel, href, crossOrigin }) => {
-      if (document.querySelector(`link[href="${href}"]`)) return; // Evita duplicados
       const link = document.createElement('link');
       link.rel = rel;
       link.href = href;
       if (crossOrigin) link.crossOrigin = crossOrigin;
       document.head.appendChild(link);
     });
+
+    // Marca app como pronto após um delay mínimo
+    setTimeout(() => setIsAppReady(true), 100);
   }, []);
 
-  // Callback para finalizar a introdução
-  const handleAnimationComplete = useCallback(() => {
-    setShowIntro(false);
-  }, []);
-
+  // Callbacks otimizados
   const handleMenuClick = useCallback((item) => {
     const normalizedItem = item.toLowerCase();
     if (normalizedItem.includes('diretor')) setActiveModal('directors');
@@ -153,26 +187,32 @@ export default function App() {
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-black">
-      {/* O vídeo é renderizado imediatamente e sua visibilidade é controlada pelo `isReady` prop */}
-      <OptimizedVideo
-        vimeoId={vimeoId}
-        isMobile={isMobile}
-        isReady={!showIntro && !!vimeoId}
-      />
+      {/* Renderiza o vídeo imediatamente, mesmo durante a intro */}
+      {vimeoId && isAppReady && (
+        <div className="absolute inset-0 w-full h-full">
+          <OptimizedVideo 
+            vimeoId={vimeoId}
+            isMobile={isMobile}
+          />
+        </div>
+      )}
 
+      {/* Animação de Introdução */}
       <AnimatePresence>
         {showIntro && (
-          <IntroAnimation onAnimationComplete={handleAnimationComplete} />
+          <IntroAnimation 
+            onAnimationComplete={() => setShowIntro(false)} 
+          />
         )}
       </AnimatePresence>
 
-      {/* O conteúdo principal só é renderizado após a introdução */}
+      {/* Conteúdo Principal */}
       {!showIntro && (
         <motion.div
           className="relative z-10 h-full"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
         >
           <Logo onClick={handleLogoClick} />
           {!activeModal && !isVideoOpen && (
