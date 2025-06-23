@@ -1,6 +1,3 @@
-// src/App.jsx
-
-// ... outras importações ...
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -17,53 +14,90 @@ import logo from './logo.png';
 
 // --- Hook para detectar se a tela é de mobile ---
 const useIsMobile = (breakpoint = 768) => {
-  // ... (código inalterado)
+  const [isMobile, setIsMobile] = useState(window.innerWidth < breakpoint);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < breakpoint);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [breakpoint]);
+
+  return isMobile;
 };
 
-// --- Animação de Intro ---
+// --- Animação de Intro (Corrigida) ---
 const IntroAnimation = ({ onAnimationComplete }) => {
-  // ... (código inalterado)
+  return (
+    <motion.div
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black"
+    >
+      <motion.img
+        src={logo}
+        alt="Logo"
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 1, delay: 0.5 }}
+        onAnimationComplete={onAnimationComplete} // Callback de conclusão foi movido para a animação real
+      />
+    </motion.div>
+  );
 };
 
-// --- Componente de Vídeo Otimizado ---
+// --- Componente de Vídeo Otimizado (Corrigido) ---
 const OptimizedVideo = ({ vimeoId, isMobile, isReady }) => {
+  // Container que controla a visibilidade e o posicionamento de fundo
+  const containerStyle = {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    zIndex: -1, // Garante que o vídeo fique no fundo de todo o conteúdo
+    opacity: isReady ? 1 : 0,
+    transition: 'opacity 0.7s ease-in-out',
+    backgroundColor: 'black',
+    overflow: 'hidden', // Previne barras de rolagem
+  };
+
   const iframeStyle = {
     position: 'absolute',
     top: '50%',
     left: '50%',
-    width: isMobile ? '300vw' : '150vw', // Aumentado para garantir cobertura total
-    height: isMobile ? '300vh' : '150vh',// Aumentado para garantir cobertura total
+    width: isMobile ? '300vw' : '150vw',
+    height: isMobile ? '300vh' : '150vh',
     transform: 'translate(-50%, -50%)',
     pointerEvents: 'none',
-    opacity: isReady ? 1 : 0, // Controla a visibilidade
-    transition: 'opacity 0.5s ease-in-out',
   };
-
-  if (!vimeoId) {
-    return <div className="w-full h-full bg-black" />;
-  }
 
   const videoParams = [
     'autoplay=1', 'loop=1', 'autopause=0', 'muted=1', 'background=1',
     'controls=0', 'sidedock=0', 'quality=auto', 'dnt=1', 'playsinline=1'
   ].join('&');
 
-  const embedUrl = `https://player.vimeo.com/video/${vimeoId}?${videoParams}`;
+  const embedUrl = vimeoId ? `https://player.vimeo.com/video/${vimeoId}?${videoParams}` : '';
 
   return (
-    <iframe
-      src={embedUrl}
-      frameBorder="0"
-      allow="autoplay; picture-in-picture"
-      allowFullScreen
-      title="Background Video"
-      style={iframeStyle}
-      loading="eager" // Carregamento imediato
-    />
+    <div style={containerStyle}>
+      {vimeoId && (
+        <iframe
+          src={embedUrl}
+          frameBorder="0"
+          allow="autoplay; picture-in-picture"
+          allowFullScreen
+          title="Background Video"
+          style={iframeStyle}
+          loading="eager" // Prioriza o carregamento do iframe
+        />
+      )}
+    </div>
   );
 };
 
-// --- Componente Principal ---
+// --- Componente Principal (Corrigido) ---
 export default function App() {
   const [activeModal, setActiveModal] = useState(null);
   const [language, setLanguage] = useState('pt');
@@ -74,7 +108,7 @@ export default function App() {
   const isMobile = useIsMobile();
   const { data: homepageData } = useContentful('homepage');
 
-  // Extrai o ID do Vimeo
+  // Extrai o ID do Vimeo assim que os dados chegarem
   useEffect(() => {
     if (!homepageData) return;
     const rawVideoSource = homepageData?.videoUrl || (homepageData?.backgroundVideo ? `https:${homepageData.backgroundVideo}` : null);
@@ -84,7 +118,7 @@ export default function App() {
     }
   }, [homepageData]);
 
-  // Preconnect com Vimeo
+  // Adiciona tags de preconnect para acelerar a conexão com o Vimeo
   useEffect(() => {
     const links = [
       { rel: 'preconnect', href: 'https://player.vimeo.com', crossOrigin: 'anonymous' },
@@ -92,6 +126,7 @@ export default function App() {
       { rel: 'preconnect', href: 'https://i.vimeocdn.com', crossOrigin: 'anonymous' }
     ];
     links.forEach(({ rel, href, crossOrigin }) => {
+      if (document.querySelector(`link[href="${href}"]`)) return; // Evita duplicados
       const link = document.createElement('link');
       link.rel = rel;
       link.href = href;
@@ -100,11 +135,11 @@ export default function App() {
     });
   }, []);
 
+  // Callback para finalizar a introdução
   const handleAnimationComplete = useCallback(() => {
     setShowIntro(false);
   }, []);
 
-  // ... (outros handlers inalterados) ...
   const handleMenuClick = useCallback((item) => {
     const normalizedItem = item.toLowerCase();
     if (normalizedItem.includes('diretor')) setActiveModal('directors');
@@ -116,10 +151,9 @@ export default function App() {
   const handleCloseModal = useCallback(() => setActiveModal(null), []);
   const handleLogoClick = useCallback(() => setActiveModal(null), []);
 
-
   return (
     <div className="fixed inset-0 overflow-hidden bg-black">
-      {/* Renderiza o vídeo imediatamente e controla a visibilidade com `!showIntro` */}
+      {/* O vídeo é renderizado imediatamente e sua visibilidade é controlada pelo `isReady` prop */}
       <OptimizedVideo
         vimeoId={vimeoId}
         isMobile={isMobile}
@@ -132,6 +166,7 @@ export default function App() {
         )}
       </AnimatePresence>
 
+      {/* O conteúdo principal só é renderizado após a introdução */}
       {!showIntro && (
         <motion.div
           className="relative z-10 h-full"
