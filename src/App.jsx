@@ -24,21 +24,30 @@ const useIsMobile = (breakpoint = 768) => {
 
 const IntroAnimation = ({ onAnimationComplete }) => {
   useEffect(() => {
-    const frame = requestAnimationFrame(onAnimationComplete);
-    return () => cancelAnimationFrame(frame);
+    // Aguarda 2.5 segundos antes de completar a animação
+    const timer = setTimeout(onAnimationComplete, 2500);
+    return () => clearTimeout(timer);
   }, [onAnimationComplete]);
 
   return (
     <motion.div
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black"
-      exit={{ x: '-100%', transition: { duration: 0.8, ease: [0.76, 0, 0.24, 1] } }}
+      exit={{ x: '-100%', transition: { duration: 1.2, ease: [0.76, 0, 0.24, 1] } }}
     >
       <motion.img
         src={logo}
         alt="BLACKSHADE"
         className="h-24 md:h-32"
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1, transition: { duration: 0.5, delay: 0.2 } }}
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ 
+          opacity: 1, 
+          scale: 1, 
+          transition: { 
+            duration: 0.8, 
+            delay: 0.3,
+            ease: [0.43, 0.13, 0.23, 0.96]
+          } 
+        }}
       />
     </motion.div>
   );
@@ -90,7 +99,7 @@ export default function App() {
   const [isVideoOpen, setIsVideoOpen] = useState(false);
   const [showIntro, setShowIntro] = useState(true);
   const [vimeoId, setVimeoId] = useState(null);
-  const [isAppReady, setIsAppReady] = useState(false);
+  const [isVideoReady, setIsVideoReady] = useState(false);
   const isMobile = useIsMobile();
   const { data: homepageData } = useContentful('homepage');
 
@@ -116,7 +125,9 @@ export default function App() {
       if (crossOrigin) link.crossOrigin = crossOrigin;
       document.head.appendChild(link);
     });
-    setTimeout(() => setIsAppReady(true), 50);
+    
+    // Marca o vídeo como pronto para ser exibido imediatamente
+    setIsVideoReady(true);
   }, []);
 
   const handleMenuClick = useCallback((item) => {
@@ -132,7 +143,8 @@ export default function App() {
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-black">
-      {vimeoId && isAppReady && (
+      {/* Vídeo carrega imediatamente, mas fica escondido atrás da animação intro */}
+      {vimeoId && isVideoReady && (
         <div className="absolute inset-0 w-full h-full">
           <OptimizedVideo vimeoId={vimeoId} isMobile={isMobile} />
         </div>
@@ -147,7 +159,7 @@ export default function App() {
           className="relative z-10 h-full"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
         >
           <Logo onClick={handleLogoClick} />
           {!activeModal && !isVideoOpen && <LanguageSwitcher language={language} onChange={setLanguage} />}
