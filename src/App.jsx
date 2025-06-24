@@ -53,16 +53,70 @@ const IntroAnimation = ({ onAnimationComplete }) => {
   );
 };
 
-const OptimizedVideo = ({ vimeoId, isMobile, onLoad }) => {
+const OptimizedVideo = ({ vimeoId, videoUrl, posterImage, isMobile, onLoad }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   
+  const videoStyle = isMobile
+    ? { 
+        position: 'absolute', 
+        top: '50%', 
+        left: '50%', 
+        width: '177.78vh', // 16:9 aspect ratio
+        height: '100vh',
+        transform: 'translate(-50%, -50%)',
+        objectFit: 'cover'
+      }
+    : { 
+        position: 'absolute', 
+        top: '50%', 
+        left: '50%', 
+        width: '100%',
+        height: '100%',
+        minWidth: '100vw',
+        minHeight: '100vh',
+        transform: 'translate(-50%, -50%)',
+        objectFit: 'cover'
+      };
+
+  // Se tiver URL direta do vídeo (MP4, WebM, ou Vimeo Progressive), usa ela
+  if (videoUrl) {
+    return (
+      <>
+        {!isLoaded && posterImage && (
+          <img 
+            src={posterImage} 
+            alt="Loading"
+            className="absolute inset-0 w-full h-full object-cover"
+            style={videoStyle}
+          />
+        )}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="auto"
+          poster={posterImage}
+          className={`absolute inset-0 w-full h-full transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+          style={videoStyle}
+          onLoadedData={() => {
+            setIsLoaded(true);
+            onLoad?.();
+          }}
+        >
+          <source src={videoUrl} type="video/mp4" />
+        </video>
+      </>
+    );
+  }
+
+  // Fallback para iframe do Vimeo (mais lento)
+  if (!vimeoId) return <div className="w-full h-full bg-black" />;
+
   const iframeStyle = isMobile
     ? { position: 'absolute', top: '50%', left: '60%', width: '600vw', height: '400vh', transform: 'translate(-50%, -50%)', pointerEvents: 'none' }
     : { position: 'absolute', top: '50%', left: '50%', width: '100vw', height: '100vh', transform: 'translate(-50%, -50%) scale(1.5)', pointerEvents: 'none' };
 
-  if (!vimeoId) return <div className="w-full h-full bg-black" />;
-
-  // Parâmetros otimizados para carregamento mais rápido
   const videoParams = [
     'autoplay=1',
     'loop=1',
@@ -71,7 +125,7 @@ const OptimizedVideo = ({ vimeoId, isMobile, onLoad }) => {
     'background=1',
     'controls=0',
     'sidedock=0',
-    'quality=540p', // Força qualidade específica para carregar mais rápido
+    'quality=1080p',
     'responsive=1',
     'dnt=1',
     'playsinline=1',
@@ -85,24 +139,8 @@ const OptimizedVideo = ({ vimeoId, isMobile, onLoad }) => {
 
   const embedUrl = `https://player.vimeo.com/video/${vimeoId}?${videoParams}`;
 
-  useEffect(() => {
-    // Pré-carrega o player do Vimeo
-    const link = document.createElement('link');
-    link.rel = 'preload';
-    link.as = 'document';
-    link.href = embedUrl;
-    document.head.appendChild(link);
-    
-    return () => {
-      if (document.head.contains(link)) {
-        document.head.removeChild(link);
-      }
-    };
-  }, [embedUrl]);
-
   return (
     <>
-      {/* Placeholder preto enquanto carrega */}
       {!isLoaded && <div className="absolute inset-0 bg-black" />}
       
       <iframe
@@ -129,38 +167,62 @@ export default function App() {
   const [language, setLanguage] = useState('pt');
   const [isVideoOpen, setIsVideoOpen] = useState(false);
   const [showIntro, setShowIntro] = useState(true);
-  // ID de vídeo padrão hardcoded para carregar instantaneamente
-  const [vimeoId, setVimeoId] = useState('YOUR_DEFAULT_VIDEO_ID'); // SUBSTITUA pelo ID real do vídeo
+  const [vimeoId, setVimeoId] = useState(null);
+  const [videoUrl, setVideoUrl] = useState(null);
+  const [posterImage, setPosterImage] = useState(null);
   const [isVideoReady, setIsVideoReady] = useState(false);
   const [videoPreloaded, setVideoPreloaded] = useState(false);
   const isMobile = useIsMobile();
   const { data: homepageData } = useContentful('homepage');
 
-  useEffect(() => {
-    if (!homepageData) return;
-    const rawVideoSource = homepageData?.videoUrl || (homepageData?.backgroundVideo ? `https:${homepageData.backgroundVideo}` : null);
-    const match = rawVideoSource?.match(/vimeo\.com\/(?:video\/)?(\d+)/);
-    if (match && match[1] !== vimeoId) {
-      setVimeoId(match[1]);
-      
-      // Pré-carrega o thumbnail do vídeo
-      const thumbnailUrl = `https://vumbnail.com/${match[1]}.jpg`;
-      const img = new Image();
-      img.src = thumbnailUrl;
-    }
-  }, [homepageData, vimeoId]);
+  // EXEMPLO DE URL DIRETA DO VIMEO (substitua com a sua)
+  // Para obter essa URL:
+  // 1. Vá para vimeo.com e faça login
+  // 2. Vá para as configurações do vídeo
+  // 3. Em "Privacy" ou "Distribution", procure por "Direct file access" ou "Video file links"
+  // 4. Copie o link do arquivo MP4
+  const VIMEO_DIRECT_URL = 'https://player.vimeo.com/progressive_redirect/playback/SEU_VIDEO_ID/rendition/1080p/file.mp4?loc=external&oauth2_token_id=SEU_TOKEN&signature=SUA_ASSINATURA';
 
   useEffect(() => {
-    // Preconnects mais agressivos
+    // Define a URL direta do vídeo imediatamente se disponível
+    if (VIMEO_DIRECT_URL && VIMEO_DIRECT_URL !== 'https://player.vimeo.com/progressive_redirect/playback/SEU_VIDEO_ID/rendition/1080p/file.mp4?loc=external&oauth2_token_id=SEU_TOKEN&signature=SUA_ASSINATURA') {
+      setVideoUrl(VIMEO_DIRECT_URL);
+    }
+    
+    if (!homepageData) return;
+    
+    // Se tiver posterImage, usa como placeholder
+    if (homepageData?.posterImage) {
+      setPosterImage(`https:${homepageData.posterImage}`);
+    }
+    
+    // Se tiver videoUrl no Contentful
+    if (homepageData?.videoUrl) {
+      // Se for uma URL direta (progressive download ou MP4)
+      if (homepageData.videoUrl.includes('progressive_redirect') || 
+          homepageData.videoUrl.includes('.mp4') || 
+          homepageData.videoUrl.includes('.webm')) {
+        setVideoUrl(homepageData.videoUrl);
+      } else {
+        // Se for URL normal do Vimeo, extrai o ID
+        const match = homepageData.videoUrl.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+        if (match) {
+          setVimeoId(match[1]);
+          // Se não tiver URL direta, usa o iframe (mais lento)
+          if (!VIMEO_DIRECT_URL || VIMEO_DIRECT_URL.includes('SEU_VIDEO_ID')) {
+            setVideoUrl(null);
+          }
+        }
+      }
+    }
+  }, [homepageData, VIMEO_DIRECT_URL]);
+
+  useEffect(() => {
+    // Preconnects e prefetch
     const links = [
       { rel: 'preconnect', href: 'https://player.vimeo.com', crossOrigin: 'anonymous' },
-      { rel: 'preconnect', href: 'https://f.vimeocdn.com', crossOrigin: 'anonymous' },
-      { rel: 'preconnect', href: 'https://i.vimeocdn.com', crossOrigin: 'anonymous' },
       { rel: 'preconnect', href: 'https://vod-progressive.akamaized.net', crossOrigin: 'anonymous' },
-      { rel: 'preconnect', href: 'https://vod-adaptive.akamaized.net', crossOrigin: 'anonymous' },
       { rel: 'dns-prefetch', href: 'https://vimeo.com' },
-      { rel: 'dns-prefetch', href: 'https://vimeocdn.com' },
-      { rel: 'dns-prefetch', href: 'https://akamaized.net' }
     ];
     
     links.forEach(({ rel, href, crossOrigin }) => {
@@ -171,15 +233,14 @@ export default function App() {
       document.head.appendChild(link);
     });
     
-    // Pré-carrega o script do player Vimeo
-    const script = document.createElement('link');
-    script.rel = 'preload';
-    script.as = 'script';
-    script.href = 'https://player.vimeo.com/api/player.js';
-    document.head.appendChild(script);
+    // Prefetch do poster se existir
+    if (posterImage) {
+      const img = new Image();
+      img.src = posterImage;
+    }
     
     setIsVideoReady(true);
-  }, []);
+  }, [posterImage]);
 
   const handleMenuClick = useCallback((item) => {
     const normalizedItem = item.toLowerCase();
@@ -194,11 +255,13 @@ export default function App() {
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-black">
-      {/* Vídeo carrega imediatamente, mas fica escondido atrás da animação intro */}
-      {vimeoId && isVideoReady && (
+      {/* Vídeo carrega imediatamente, priorizando URL direta sobre iframe */}
+      {(videoUrl || vimeoId) && isVideoReady && (
         <div className="absolute inset-0 w-full h-full">
           <OptimizedVideo 
-            vimeoId={vimeoId} 
+            vimeoId={vimeoId}
+            videoUrl={videoUrl}
+            posterImage={posterImage}
             isMobile={isMobile}
             onLoad={() => setVideoPreloaded(true)}
           />
