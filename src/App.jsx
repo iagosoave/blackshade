@@ -53,13 +53,16 @@ const IntroAnimation = ({ onAnimationComplete }) => {
   );
 };
 
-const OptimizedVideo = ({ vimeoId, isMobile }) => {
+const OptimizedVideo = ({ vimeoId, isMobile, onLoad }) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+  
   const iframeStyle = isMobile
     ? { position: 'absolute', top: '50%', left: '60%', width: '600vw', height: '400vh', transform: 'translate(-50%, -50%)', pointerEvents: 'none' }
     : { position: 'absolute', top: '50%', left: '50%', width: '100vw', height: '100vh', transform: 'translate(-50%, -50%) scale(1.5)', pointerEvents: 'none' };
 
   if (!vimeoId) return <div className="w-full h-full bg-black" />;
 
+  // Parâmetros otimizados para carregamento mais rápido
   const videoParams = [
     'autoplay=1',
     'loop=1',
@@ -68,28 +71,56 @@ const OptimizedVideo = ({ vimeoId, isMobile }) => {
     'background=1',
     'controls=0',
     'sidedock=0',
-    'quality=auto',
+    'quality=540p', // Força qualidade específica para carregar mais rápido
     'responsive=1',
     'dnt=1',
     'playsinline=1',
     'preload=auto',
-    'speed=1'
+    'speed=1',
+    'title=0',
+    'byline=0',
+    'portrait=0',
+    'pip=0'
   ].join('&');
 
   const embedUrl = `https://player.vimeo.com/video/${vimeoId}?${videoParams}`;
 
+  useEffect(() => {
+    // Pré-carrega o player do Vimeo
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'document';
+    link.href = embedUrl;
+    document.head.appendChild(link);
+    
+    return () => {
+      if (document.head.contains(link)) {
+        document.head.removeChild(link);
+      }
+    };
+  }, [embedUrl]);
+
   return (
-    <iframe
-      src={embedUrl}
-      frameBorder="0"
-      allow="autoplay; picture-in-picture"
-      allowFullScreen
-      title="Background Video"
-      className="absolute inset-0 w-full h-full transition-opacity opacity-100"
-      style={iframeStyle}
-      loading="eager"
-      importance="high"
-    />
+    <>
+      {/* Placeholder preto enquanto carrega */}
+      {!isLoaded && <div className="absolute inset-0 bg-black" />}
+      
+      <iframe
+        src={embedUrl}
+        frameBorder="0"
+        allow="autoplay; fullscreen; picture-in-picture"
+        allowFullScreen
+        title="Background Video"
+        className={`absolute inset-0 w-full h-full transition-opacity ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+        style={iframeStyle}
+        loading="eager"
+        importance="high"
+        onLoad={() => {
+          setIsLoaded(true);
+          onLoad?.();
+        }}
+      />
+    </>
   );
 };
 
@@ -98,8 +129,10 @@ export default function App() {
   const [language, setLanguage] = useState('pt');
   const [isVideoOpen, setIsVideoOpen] = useState(false);
   const [showIntro, setShowIntro] = useState(true);
-  const [vimeoId, setVimeoId] = useState(null);
+  // ID de vídeo padrão hardcoded para carregar instantaneamente
+  const [vimeoId, setVimeoId] = useState('YOUR_DEFAULT_VIDEO_ID'); // SUBSTITUA pelo ID real do vídeo
   const [isVideoReady, setIsVideoReady] = useState(false);
+  const [videoPreloaded, setVideoPreloaded] = useState(false);
   const isMobile = useIsMobile();
   const { data: homepageData } = useContentful('homepage');
 
@@ -107,17 +140,29 @@ export default function App() {
     if (!homepageData) return;
     const rawVideoSource = homepageData?.videoUrl || (homepageData?.backgroundVideo ? `https:${homepageData.backgroundVideo}` : null);
     const match = rawVideoSource?.match(/vimeo\.com\/(?:video\/)?(\d+)/);
-    if (match) setVimeoId(match[1]);
-  }, [homepageData]);
+    if (match && match[1] !== vimeoId) {
+      setVimeoId(match[1]);
+      
+      // Pré-carrega o thumbnail do vídeo
+      const thumbnailUrl = `https://vumbnail.com/${match[1]}.jpg`;
+      const img = new Image();
+      img.src = thumbnailUrl;
+    }
+  }, [homepageData, vimeoId]);
 
   useEffect(() => {
+    // Preconnects mais agressivos
     const links = [
       { rel: 'preconnect', href: 'https://player.vimeo.com', crossOrigin: 'anonymous' },
       { rel: 'preconnect', href: 'https://f.vimeocdn.com', crossOrigin: 'anonymous' },
       { rel: 'preconnect', href: 'https://i.vimeocdn.com', crossOrigin: 'anonymous' },
+      { rel: 'preconnect', href: 'https://vod-progressive.akamaized.net', crossOrigin: 'anonymous' },
+      { rel: 'preconnect', href: 'https://vod-adaptive.akamaized.net', crossOrigin: 'anonymous' },
       { rel: 'dns-prefetch', href: 'https://vimeo.com' },
-      { rel: 'dns-prefetch', href: 'https://vimeocdn.com' }
+      { rel: 'dns-prefetch', href: 'https://vimeocdn.com' },
+      { rel: 'dns-prefetch', href: 'https://akamaized.net' }
     ];
+    
     links.forEach(({ rel, href, crossOrigin }) => {
       const link = document.createElement('link');
       link.rel = rel;
@@ -126,7 +171,13 @@ export default function App() {
       document.head.appendChild(link);
     });
     
-    // Marca o vídeo como pronto para ser exibido imediatamente
+    // Pré-carrega o script do player Vimeo
+    const script = document.createElement('link');
+    script.rel = 'preload';
+    script.as = 'script';
+    script.href = 'https://player.vimeo.com/api/player.js';
+    document.head.appendChild(script);
+    
     setIsVideoReady(true);
   }, []);
 
@@ -146,7 +197,11 @@ export default function App() {
       {/* Vídeo carrega imediatamente, mas fica escondido atrás da animação intro */}
       {vimeoId && isVideoReady && (
         <div className="absolute inset-0 w-full h-full">
-          <OptimizedVideo vimeoId={vimeoId} isMobile={isMobile} />
+          <OptimizedVideo 
+            vimeoId={vimeoId} 
+            isMobile={isMobile}
+            onLoad={() => setVideoPreloaded(true)}
+          />
         </div>
       )}
 
