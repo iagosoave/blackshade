@@ -6,6 +6,7 @@ import LanguageSwitcher from './components/LanguageSwitcher';
 import Modal from './components/Modal';
 import useContentful from './hocks/useContentful';
 import logo from './logo.png';
+import { translations } from './config/translations';
 
 const DirectorsSection = lazy(() => import('./sections/DirectorsSection'));
 const MusicSection = lazy(() => import('./sections/MusicSection'));
@@ -24,7 +25,6 @@ const useIsMobile = (breakpoint = 768) => {
 
 const IntroAnimation = ({ onAnimationComplete }) => {
   useEffect(() => {
-    // Aguarda 2.5 segundos antes de completar a animação
     const timer = setTimeout(onAnimationComplete, 2500);
     return () => clearTimeout(timer);
   }, [onAnimationComplete]);
@@ -39,80 +39,42 @@ const IntroAnimation = ({ onAnimationComplete }) => {
         alt="BLACKSHADE"
         className="h-24 md:h-32"
         initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ 
-          opacity: 1, 
-          scale: 1, 
-          transition: { 
-            duration: 0.8, 
-            delay: 0.3,
-            ease: [0.43, 0.13, 0.23, 0.96]
-          } 
-        }}
+        animate={{ opacity: 1, scale: 1, transition: { duration: 0.8, delay: 0.3, ease: [0.43, 0.13, 0.23, 0.96] } }}
       />
     </motion.div>
   );
 };
 
-const OptimizedVideo = ({ vimeoId, videoUrl, posterImage, isMobile, onLoad }) => {
+// Vídeo background otimizado: tenta sempre usar <video> se possível
+const BackgroundVideo = ({ videoUrl, posterImage, onLoad }) => {
   const [isLoaded, setIsLoaded] = useState(false);
-  
-  const videoStyle = isMobile
-    ? { 
-        position: 'absolute', 
-        top: '50%', 
-        left: '50%', 
-        width: '177.78vh', // 16:9 aspect ratio
-        height: '100vh',
-        transform: 'translate(-50%, -50%)',
-        objectFit: 'cover'
-      }
-    : { 
-        position: 'absolute', 
-        top: '50%', 
-        left: '50%', 
-        width: '100%',
-        height: '100%',
-        minWidth: '100vw',
-        minHeight: '100vh',
-        transform: 'translate(-50%, -50%)',
-        objectFit: 'cover'
-      };
 
-  // Se tiver URL direta do vídeo (MP4, WebM, ou Vimeo Progressive), usa ela
-  if (videoUrl) {
-    return (
-      <>
-        {!isLoaded && posterImage && (
-          <img 
-            src={posterImage} 
-            alt="Loading"
-            className="absolute inset-0 w-full h-full object-cover"
-            style={videoStyle}
-          />
-        )}
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="auto"
-          poster={posterImage}
-          className={`absolute inset-0 w-full h-full transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-          style={videoStyle}
-          onLoadedData={() => {
-            setIsLoaded(true);
-            onLoad?.();
-          }}
-        >
-          <source src={videoUrl} type="video/mp4" />
-        </video>
-      </>
-    );
-  }
+  return (
+    <>
+      {!isLoaded && posterImage && (
+        <img src={posterImage} alt="Loading" className="absolute inset-0 w-full h-full object-cover" />
+      )}
+      <video
+        autoPlay
+        muted
+        playsInline
+        loop
+        preload="auto"
+        poster={posterImage}
+        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+        onLoadedData={() => {
+          setIsLoaded(true);
+          onLoad?.();
+        }}
+      >
+        <source src={videoUrl} type="video/mp4" />
+      </video>
+    </>
+  );
+};
 
-  // Fallback para iframe do Vimeo (mais lento)
-  if (!vimeoId) return <div className="w-full h-full bg-black" />;
-
+// Fallback: Vimeo iframe se não tiver URL direta (vai ser mais pesado mesmo)
+const VimeoIframe = ({ vimeoId, isMobile, onLoad }) => {
   const iframeStyle = isMobile
     ? { position: 'absolute', top: '50%', left: '60%', width: '600vw', height: '400vh', transform: 'translate(-50%, -50%)', pointerEvents: 'none' }
     : { position: 'absolute', top: '50%', left: '50%', width: '100vw', height: '100vh', transform: 'translate(-50%, -50%) scale(1.5)', pointerEvents: 'none' };
@@ -124,13 +86,11 @@ const OptimizedVideo = ({ vimeoId, videoUrl, posterImage, isMobile, onLoad }) =>
     'muted=1',
     'background=1',
     'controls=0',
-    'sidedock=0',
-    'quality=1080p',
+    'quality=720p', // qualidade menor pra travar menos
     'responsive=1',
     'dnt=1',
     'playsinline=1',
     'preload=auto',
-    'speed=1',
     'title=0',
     'byline=0',
     'portrait=0',
@@ -140,32 +100,24 @@ const OptimizedVideo = ({ vimeoId, videoUrl, posterImage, isMobile, onLoad }) =>
   const embedUrl = `https://player.vimeo.com/video/${vimeoId}?${videoParams}`;
 
   return (
-    <>
-      {!isLoaded && <div className="absolute inset-0 bg-black" />}
-      
-      <iframe
-        src={embedUrl}
-        frameBorder="0"
-        allow="autoplay; fullscreen; picture-in-picture"
-        allowFullScreen
-        title="Background Video"
-        className={`absolute inset-0 w-full h-full transition-opacity ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-        style={iframeStyle}
-        loading="eager"
-        importance="high"
-        onLoad={() => {
-          setIsLoaded(true);
-          onLoad?.();
-        }}
-      />
-    </>
+    <iframe
+      src={embedUrl}
+      frameBorder="0"
+      allow="autoplay; fullscreen; picture-in-picture"
+      allowFullScreen
+      title="Background Video"
+      className="absolute inset-0 w-full h-full"
+      style={iframeStyle}
+      loading="eager"
+      importance="high"
+      onLoad={onLoad}
+    />
   );
 };
 
 export default function App() {
   const [activeModal, setActiveModal] = useState(null);
   const [language, setLanguage] = useState('pt');
-  const [isVideoOpen, setIsVideoOpen] = useState(false);
   const [showIntro, setShowIntro] = useState(true);
   const [vimeoId, setVimeoId] = useState(null);
   const [videoUrl, setVideoUrl] = useState(null);
@@ -175,56 +127,29 @@ export default function App() {
   const isMobile = useIsMobile();
   const { data: homepageData } = useContentful('homepage');
 
-  // EXEMPLO DE URL DIRETA DO VIMEO (substitua com a sua)
-  // Para obter essa URL:
-  // 1. Vá para vimeo.com e faça login
-  // 2. Vá para as configurações do vídeo
-  // 3. Em "Privacy" ou "Distribution", procure por "Direct file access" ou "Video file links"
-  // 4. Copie o link do arquivo MP4
-  const VIMEO_DIRECT_URL = 'https://player.vimeo.com/progressive_redirect/playback/SEU_VIDEO_ID/rendition/1080p/file.mp4?loc=external&oauth2_token_id=SEU_TOKEN&signature=SUA_ASSINATURA';
-
   useEffect(() => {
-    // Define a URL direta do vídeo imediatamente se disponível
-    if (VIMEO_DIRECT_URL && VIMEO_DIRECT_URL !== 'https://player.vimeo.com/progressive_redirect/playback/SEU_VIDEO_ID/rendition/1080p/file.mp4?loc=external&oauth2_token_id=SEU_TOKEN&signature=SUA_ASSINATURA') {
-      setVideoUrl(VIMEO_DIRECT_URL);
-    }
-    
     if (!homepageData) return;
-    
-    // Se tiver posterImage, usa como placeholder
+
     if (homepageData?.posterImage) {
       setPosterImage(`https:${homepageData.posterImage}`);
     }
-    
-    // Se tiver videoUrl no Contentful
+
     if (homepageData?.videoUrl) {
-      // Se for uma URL direta (progressive download ou MP4)
-      if (homepageData.videoUrl.includes('progressive_redirect') || 
-          homepageData.videoUrl.includes('.mp4') || 
-          homepageData.videoUrl.includes('.webm')) {
+      if (homepageData.videoUrl.includes('.mp4')) {
         setVideoUrl(homepageData.videoUrl);
       } else {
-        // Se for URL normal do Vimeo, extrai o ID
         const match = homepageData.videoUrl.match(/vimeo\.com\/(?:video\/)?(\d+)/);
-        if (match) {
-          setVimeoId(match[1]);
-          // Se não tiver URL direta, usa o iframe (mais lento)
-          if (!VIMEO_DIRECT_URL || VIMEO_DIRECT_URL.includes('SEU_VIDEO_ID')) {
-            setVideoUrl(null);
-          }
-        }
+        if (match) setVimeoId(match[1]);
       }
     }
-  }, [homepageData, VIMEO_DIRECT_URL]);
+  }, [homepageData]);
 
   useEffect(() => {
-    // Preconnects e prefetch
+    // preconnect
     const links = [
       { rel: 'preconnect', href: 'https://player.vimeo.com', crossOrigin: 'anonymous' },
-      { rel: 'preconnect', href: 'https://vod-progressive.akamaized.net', crossOrigin: 'anonymous' },
       { rel: 'dns-prefetch', href: 'https://vimeo.com' },
     ];
-    
     links.forEach(({ rel, href, crossOrigin }) => {
       const link = document.createElement('link');
       link.rel = rel;
@@ -232,39 +157,31 @@ export default function App() {
       if (crossOrigin) link.crossOrigin = crossOrigin;
       document.head.appendChild(link);
     });
-    
-    // Prefetch do poster se existir
-    if (posterImage) {
-      const img = new Image();
-      img.src = posterImage;
-    }
-    
+    if (posterImage) new Image().src = posterImage;
     setIsVideoReady(true);
   }, [posterImage]);
 
   const handleMenuClick = useCallback((item) => {
-    const normalizedItem = item.toLowerCase();
-    if (normalizedItem.includes('diretor')) setActiveModal('directors');
-    else if (normalizedItem.includes('música')) setActiveModal('music');
-    else if (normalizedItem.includes('ia')) setActiveModal('ai');
-    else if (normalizedItem.includes('contat')) setActiveModal('contact');
-  }, []);
+    const t = translations[language];
+    if (item === t.menu.directors) setActiveModal('directors');
+    else if (item === t.menu.music) setActiveModal('music');
+    else if (item === t.menu.ai) setActiveModal('ai');
+    else if (item === t.menu.contact) setActiveModal('contact');
+  }, [language]);
 
   const handleCloseModal = useCallback(() => setActiveModal(null), []);
   const handleLogoClick = useCallback(() => setActiveModal(null), []);
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-black">
-      {/* Vídeo carrega imediatamente, priorizando URL direta sobre iframe */}
-      {(videoUrl || vimeoId) && isVideoReady && (
+      {/* Background: prefere <video>, senão Vimeo */}
+      {isVideoReady && (
         <div className="absolute inset-0 w-full h-full">
-          <OptimizedVideo 
-            vimeoId={vimeoId}
-            videoUrl={videoUrl}
-            posterImage={posterImage}
-            isMobile={isMobile}
-            onLoad={() => setVideoPreloaded(true)}
-          />
+          {videoUrl ? (
+            <BackgroundVideo videoUrl={videoUrl} posterImage={posterImage} onLoad={() => setVideoPreloaded(true)} />
+          ) : vimeoId ? (
+            <VimeoIframe vimeoId={vimeoId} isMobile={isMobile} onLoad={() => setVideoPreloaded(true)} />
+          ) : null}
         </div>
       )}
 
@@ -273,30 +190,24 @@ export default function App() {
       </AnimatePresence>
 
       {!showIntro && (
-        <motion.div
-          className="relative z-10 h-full"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-        >
+        <motion.div className="relative z-10 h-full" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8, delay: 0.2 }}>
           <Logo onClick={handleLogoClick} />
-          {!activeModal && !isVideoOpen && <LanguageSwitcher language={language} onChange={setLanguage} />}
-          {!isVideoOpen && <Menu onItemClick={handleMenuClick} language={language} />}
-
+          {!activeModal && <LanguageSwitcher language={language} onChange={setLanguage} />}
+          <Menu onItemClick={handleMenuClick} language={language} />
           <Suspense fallback={null}>
             {activeModal === 'directors' && (
               <Modal isOpen onClose={handleCloseModal} direction="left">
-                <DirectorsSection language={language} onVideoOpen={setIsVideoOpen} />
+                <DirectorsSection language={language} />
               </Modal>
             )}
             {activeModal === 'music' && (
               <Modal isOpen onClose={handleCloseModal} direction="right">
-                <MusicSection language={language} onVideoOpen={setIsVideoOpen} />
+                <MusicSection language={language} />
               </Modal>
             )}
             {activeModal === 'ai' && (
               <Modal isOpen onClose={handleCloseModal} direction="left">
-                <AISection language={language} onVideoOpen={setIsVideoOpen} />
+                <AISection language={language} />
               </Modal>
             )}
             {activeModal === 'contact' && (

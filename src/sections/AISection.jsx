@@ -2,14 +2,16 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import useContentful from '../hocks/useContentful';
 import ProjectGrid from '../components/ProjectGrid';
+import { translations } from '../config/translations';
 
 export default function AISection({ language }) {
   const { data: aiItems, loading } = useContentful('ai');
+  const t = translations[language] || translations.pt;
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-white text-xl">Carregando...</div>
+        <div className="text-white text-xl">{t.ai.loading}</div>
       </div>
     );
   }
@@ -30,10 +32,10 @@ export default function AISection({ language }) {
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.6 }}
       >
-        {language === 'pt' ? 'INTELIGÊNCIA ARTIFICIAL' : 'ARTIFICIAL INTELLIGENCE'}
+        {t.ai.title}
       </motion.h2>
 
-      <ProjectGrid items={aiItems || []} onSelectItem={handleSelectItem} />
+      <ProjectGrid items={aiItems || []} onSelectItem={handleSelectItem} language={language} />
     </div>
   );
 }

@@ -38,6 +38,7 @@ export default function DirectorsSection({ language, onVideoOpen }) {
           onBack={() => setSelectedDirector(null)}
           loading={loading}
           onVideoOpen={onVideoOpen}
+          language={language}
         />
       )}
     </>

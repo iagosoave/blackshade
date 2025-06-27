@@ -14,7 +14,7 @@ export default function Modal({ isOpen, onClose, children, direction = 'left' })
           transition={{ duration: 0.3 }}
         >
           <motion.div
-            className="absolute inset-0 bg-black bg-opacity-90"
+            className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm"
             onClick={onClose}
           />
           

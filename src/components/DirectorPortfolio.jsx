@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import VideoPopup from './VideoPopup';
+import { translations } from '../config/translations';
 
-export default function DirectorPortfolio({ director, onBack, loading, onVideoOpen }) {
+export default function DirectorPortfolio({ director, onBack, loading, onVideoOpen, language = 'pt' }) {
   const [selectedVideoUrl, setSelectedVideoUrl] = useState(null);
+  const t = translations[language] || translations.pt;
 
   const handleVideoClick = (item) => {
     if (item.videoUrl) {
@@ -28,13 +30,13 @@ export default function DirectorPortfolio({ director, onBack, loading, onVideoOp
           transition={{ delay: 0.3 }}
           style={{ fontFamily: 'Impact, Haettenschweiler, Arial Black, sans-serif' }}
         >
-          ← VOLTAR
+          {t.directors.back}
         </motion.button>
         
         <div>
           {loading ? (
             <div className="flex items-center justify-center h-[60vh]">
-              <div className="text-white text-xl">Carregando portfolio...</div>
+              <div className="text-white text-xl">{t.directors.loading}</div>
             </div>
           ) : (
             <>
@@ -69,7 +71,7 @@ export default function DirectorPortfolio({ director, onBack, loading, onVideoOp
                 ))
               ) : (
                 <div className="flex items-center justify-center h-[60vh]">
-                  <div className="text-white text-xl opacity-60">Portfolio em breve</div>
+                  <div className="text-white text-xl opacity-60">{t.directors.soon}</div>
                 </div>
               )}
             </>

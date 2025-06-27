@@ -1,11 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { translations } from '../config/translations';
 
 export default function Menu({ onItemClick, language }) {
-  const menuItems = {
-    pt: ['DIRETORES', 'MÚSICA', 'IA', 'CONTATO'],
-    en: ['DIRECTORS', 'MUSIC', 'AI', 'CONTACT']
-  };
+  const t = translations[language] || translations.pt;
+  const menuItems = [t.menu.directors, t.menu.music, t.menu.ai, t.menu.contact];
 
   return (
     <motion.nav
@@ -14,7 +13,7 @@ export default function Menu({ onItemClick, language }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
     >
-      {menuItems[language].map((item, index) => (
+      {menuItems.map((item, index) => (
         <motion.button
           key={item}
           className="text-white text-sm tracking-widest hover:opacity-70 transition-opacity"
