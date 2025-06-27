@@ -6,6 +6,7 @@ import LanguageSwitcher from './components/LanguageSwitcher';
 import Modal from './components/Modal';
 import useContentful from './hocks/useContentful';
 import logo from './logo.png';
+import backgroundVideo from './video.mp4'; // vídeo local
 import { translations } from './config/translations';
 
 const DirectorsSection = lazy(() => import('./sections/DirectorsSection'));
@@ -45,8 +46,7 @@ const IntroAnimation = ({ onAnimationComplete }) => {
   );
 };
 
-// Vídeo background otimizado: tenta sempre usar <video> se possível
-const BackgroundVideo = ({ videoUrl, posterImage, onLoad }) => {
+const BackgroundVideo = ({ posterImage, onLoad }) => {
   const [isLoaded, setIsLoaded] = useState(false);
 
   return (
@@ -67,51 +67,9 @@ const BackgroundVideo = ({ videoUrl, posterImage, onLoad }) => {
           onLoad?.();
         }}
       >
-        <source src={videoUrl} type="video/mp4" />
+        <source src={backgroundVideo} type="video/mp4" />
       </video>
     </>
-  );
-};
-
-// Fallback: Vimeo iframe se não tiver URL direta (vai ser mais pesado mesmo)
-const VimeoIframe = ({ vimeoId, isMobile, onLoad }) => {
-  const iframeStyle = isMobile
-    ? { position: 'absolute', top: '50%', left: '60%', width: '600vw', height: '400vh', transform: 'translate(-50%, -50%)', pointerEvents: 'none' }
-    : { position: 'absolute', top: '50%', left: '50%', width: '100vw', height: '100vh', transform: 'translate(-50%, -50%) scale(1.5)', pointerEvents: 'none' };
-
-  const videoParams = [
-    'autoplay=1',
-    'loop=1',
-    'autopause=0',
-    'muted=1',
-    'background=1',
-    'controls=0',
-    'quality=720p', // qualidade menor pra travar menos
-    'responsive=1',
-    'dnt=1',
-    'playsinline=1',
-    'preload=auto',
-    'title=0',
-    'byline=0',
-    'portrait=0',
-    'pip=0'
-  ].join('&');
-
-  const embedUrl = `https://player.vimeo.com/video/${vimeoId}?${videoParams}`;
-
-  return (
-    <iframe
-      src={embedUrl}
-      frameBorder="0"
-      allow="autoplay; fullscreen; picture-in-picture"
-      allowFullScreen
-      title="Background Video"
-      className="absolute inset-0 w-full h-full"
-      style={iframeStyle}
-      loading="eager"
-      importance="high"
-      onLoad={onLoad}
-    />
   );
 };
 
@@ -119,8 +77,6 @@ export default function App() {
   const [activeModal, setActiveModal] = useState(null);
   const [language, setLanguage] = useState('pt');
   const [showIntro, setShowIntro] = useState(true);
-  const [vimeoId, setVimeoId] = useState(null);
-  const [videoUrl, setVideoUrl] = useState(null);
   const [posterImage, setPosterImage] = useState(null);
   const [isVideoReady, setIsVideoReady] = useState(false);
   const [videoPreloaded, setVideoPreloaded] = useState(false);
@@ -128,38 +84,11 @@ export default function App() {
   const { data: homepageData } = useContentful('homepage');
 
   useEffect(() => {
-    if (!homepageData) return;
-
     if (homepageData?.posterImage) {
       setPosterImage(`https:${homepageData.posterImage}`);
     }
-
-    if (homepageData?.videoUrl) {
-      if (homepageData.videoUrl.includes('.mp4')) {
-        setVideoUrl(homepageData.videoUrl);
-      } else {
-        const match = homepageData.videoUrl.match(/vimeo\.com\/(?:video\/)?(\d+)/);
-        if (match) setVimeoId(match[1]);
-      }
-    }
-  }, [homepageData]);
-
-  useEffect(() => {
-    // preconnect
-    const links = [
-      { rel: 'preconnect', href: 'https://player.vimeo.com', crossOrigin: 'anonymous' },
-      { rel: 'dns-prefetch', href: 'https://vimeo.com' },
-    ];
-    links.forEach(({ rel, href, crossOrigin }) => {
-      const link = document.createElement('link');
-      link.rel = rel;
-      link.href = href;
-      if (crossOrigin) link.crossOrigin = crossOrigin;
-      document.head.appendChild(link);
-    });
-    if (posterImage) new Image().src = posterImage;
     setIsVideoReady(true);
-  }, [posterImage]);
+  }, [homepageData]);
 
   const handleMenuClick = useCallback((item) => {
     const t = translations[language];
@@ -174,14 +103,9 @@ export default function App() {
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-black">
-      {/* Background: prefere <video>, senão Vimeo */}
       {isVideoReady && (
         <div className="absolute inset-0 w-full h-full">
-          {videoUrl ? (
-            <BackgroundVideo videoUrl={videoUrl} posterImage={posterImage} onLoad={() => setVideoPreloaded(true)} />
-          ) : vimeoId ? (
-            <VimeoIframe vimeoId={vimeoId} isMobile={isMobile} onLoad={() => setVideoPreloaded(true)} />
-          ) : null}
+          <BackgroundVideo posterImage={posterImage} onLoad={() => setVideoPreloaded(true)} />
         </div>
       )}
 
