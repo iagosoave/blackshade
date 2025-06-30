@@ -1,12 +1,15 @@
-import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, lazy, Suspense, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Logo from './components/Logo';
 import Menu from './components/Menu';
 import LanguageSwitcher from './components/LanguageSwitcher';
 import Modal from './components/Modal';
-import useContentful from './hocks/useContentful';
+// import useContentful from './hocks/useContentful'; // Não é mais necessário para o vídeo de fundo
 import logo from './logo.png';
 import { translations } from './config/translations';
+
+// Importe o vídeo diretamente
+import backgroundVideo from './video.mp4'; 
 
 const DirectorsSection = lazy(() => import('./sections/DirectorsSection'));
 const MusicSection = lazy(() => import('./sections/MusicSection'));
@@ -48,7 +51,31 @@ export default function App() {
   const [language, setLanguage] = useState('pt');
   const [isVideoOpen, setIsVideoOpen] = useState(false);
   const [showIntro, setShowIntro] = useState(true);
-  const { data: homepageData } = useContentful('homepage');
+  // const { data: homepageData } = useContentful('homepage'); // Removido
+  const videoRef = useRef(null);
+
+  // Força o play do vídeo após carregar
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.muted = true;
+      const playVideo = () => {
+        videoRef.current.play().catch(err => {
+          console.log('Autoplay prevented:', err);
+          // Tenta novamente após interação do usuário
+          document.addEventListener('click', () => {
+            videoRef.current.play();
+          }, { once: true });
+        });
+      };
+      
+      // Tenta tocar quando o vídeo estiver pronto
+      if (videoRef.current.readyState >= 3) {
+        playVideo();
+      } else {
+        videoRef.current.addEventListener('loadeddata', playVideo);
+      }
+    }
+  }, []); // Dependência 'homepageData' removida, pois não é mais usada para o vídeo de fundo
 
   const handleMenuClick = useCallback((item) => {
     const t = translations[language];
@@ -65,55 +92,29 @@ export default function App() {
     setIsVideoOpen(false);
   }, []);
 
-  // Pega a URL do vídeo do Contentful
-  const videoUrl = homepageData?.videoUrl || null;
-
-  // Extrai o ID do Vimeo se for uma URL do Vimeo
-  const getVimeoId = (url) => {
-    if (!url) return null;
-    // Tenta diferentes formatos de URL do Vimeo
-    const patterns = [
-      /vimeo\.com\/(\d+)/,
-      /vimeo\.com\/video\/(\d+)/,
-      /player\.vimeo\.com\/video\/(\d+)/
-    ];
-    
-    for (const pattern of patterns) {
-      const match = url.match(pattern);
-      if (match && match[1]) {
-        return match[1];
-      }
-    }
-    return null;
-  };
-
-  const vimeoId = getVimeoId(videoUrl);
-  
-  console.log('Video URL:', videoUrl);
-  console.log('Vimeo ID:', vimeoId);
+  // Agora, o vídeo de fundo sempre será 'video.mp4'
+  const videoSource = backgroundVideo; 
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-black">
-      {/* Debug info - remova depois de testar */}
-      {!vimeoId && videoUrl && (
-        <div className="absolute top-20 left-6 text-white text-xs bg-red-500 p-2 z-50">
-          URL não reconhecida: {videoUrl}
-        </div>
-      )}
+      {/* Vídeo de Background - MP4 direto */}
+      <div className="absolute inset-0 w-full h-full">
+        <video
+          ref={videoRef}
+          autoPlay
+          loop
+          muted
+          playsInline
+          webkit-playsinline="true"
+          x5-playsinline="true"
+          className="absolute inset-0 w-full h-full object-cover"
+        >
+          {/* Usa o 'videoSource' que aponta para 'video.mp4' */}
+          <source src={videoSource} type="video/mp4" />
+        </video>
+      </div>
 
-      {/* Vídeo de Background */}
-      {vimeoId && (
-        <div className="absolute inset-0 w-full h-full overflow-hidden bg-black">
-          <iframe
-            src={`https://player.vimeo.com/video/${vimeoId}?autoplay=1&loop=1&muted=1&background=1&playsinline=1&quality=auto&responsive=1`}
-            className="absolute inset-0 w-full h-full"
-            frameBorder="0"
-            allow="autoplay; fullscreen; picture-in-picture"
-            allowFullScreen
-            title="Background Video"
-          />
-        </div>
-      )}
+      {/* Os blocos de vídeo do Vimeo foram removidos, pois não serão mais usados para o background */}
 
       <AnimatePresence>
         {showIntro && <IntroAnimation onAnimationComplete={() => setShowIntro(false)} />}
