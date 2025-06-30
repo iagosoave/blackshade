@@ -1,21 +1,31 @@
 import React, { useState, useEffect, useCallback, lazy, Suspense, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+
+// Componentes
 import Logo from './components/Logo';
 import Menu from './components/Menu';
 import LanguageSwitcher from './components/LanguageSwitcher';
 import Modal from './components/Modal';
-// import useContentful from './hocks/useContentful'; // Não é mais necessário para o vídeo de fundo
+
+// Ganchos customizados (mantido, caso seja usado para outros dados)
+// Se 'useContentful' não for mais usado em nenhum lugar do App, você pode removê-lo completamente.
+// Por enquanto, vamos deixá-lo caso você o use para outros dados que não o vídeo.
+import useContentful from './hocks/useContentful'; 
+
+// Imagens e Vídeo
 import logo from './logo.png';
+import backgroundVideo from './video.mp4'; // Importa diretamente o seu vídeo local
+
+// Traduções
 import { translations } from './config/translations';
 
-// Importe o vídeo diretamente
-import backgroundVideo from './video.mp4'; 
-
+// Carregamento lazy das seções
 const DirectorsSection = lazy(() => import('./sections/DirectorsSection'));
 const MusicSection = lazy(() => import('./sections/MusicSection'));
 const AISection = lazy(() => import('./sections/AISection'));
 const ContactSection = lazy(() => import('./sections/ContactSection'));
 
+// Componente de Animação de Introdução
 const IntroAnimation = ({ onAnimationComplete }) => {
   useEffect(() => {
     const timer = setTimeout(onAnimationComplete, 2500);
@@ -46,37 +56,49 @@ const IntroAnimation = ({ onAnimationComplete }) => {
   );
 };
 
+// Componente Principal da Aplicação
 export default function App() {
   const [activeModal, setActiveModal] = useState(null);
   const [language, setLanguage] = useState('pt');
-  const [isVideoOpen, setIsVideoOpen] = useState(false);
+  const [isVideoOpen, setIsVideoOpen] = useState(false); // Mantido para controle de modais de vídeo internos (se houver)
   const [showIntro, setShowIntro] = useState(true);
-  // const { data: homepageData } = useContentful('homepage'); // Removido
+  
+  // 'homepageData' mantido apenas se for usado para outras informações
+  // Se não for mais usado para NADA, você pode remover esta linha e o import de 'useContentful'.
+  const { data: homepageData } = useContentful('homepage'); 
+  
   const videoRef = useRef(null);
 
-  // Força o play do vídeo após carregar
+  // Efeito para garantir o autoplay e tratamento de erros no vídeo de fundo
   useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.muted = true;
+    const videoElement = videoRef.current;
+
+    if (videoElement) {
+      videoElement.muted = true; // Garante que esteja mutado para autoplay
+      videoElement.playsInline = true; // Garante playsInline
+
       const playVideo = () => {
-        videoRef.current.play().catch(err => {
-          console.log('Autoplay prevented:', err);
-          // Tenta novamente após interação do usuário
+        videoElement.play().catch(err => {
+          console.warn('Erro ao tentar reproduzir o vídeo automaticamente:', err);
+          // Fallback: Tenta reproduzir com interação do usuário se o autoplay for bloqueado
           document.addEventListener('click', () => {
-            videoRef.current.play();
+            videoElement.play().catch(e => console.error('Erro ao reproduzir vídeo após clique:', e));
           }, { once: true });
         });
       };
       
       // Tenta tocar quando o vídeo estiver pronto
-      if (videoRef.current.readyState >= 3) {
+      if (videoElement.readyState >= 3) {
         playVideo();
       } else {
-        videoRef.current.addEventListener('loadeddata', playVideo);
+        videoElement.addEventListener('loadeddata', playVideo);
+        // Limpa o event listener se o componente for desmontado
+        return () => videoElement.removeEventListener('loadeddata', playVideo);
       }
     }
-  }, []); // Dependência 'homepageData' removida, pois não é mais usada para o vídeo de fundo
+  }, []); // Dependência vazia, pois o vídeo de fundo é fixo e não depende de dados externos.
 
+  // Funções de callback para o menu e logo
   const handleMenuClick = useCallback((item) => {
     const t = translations[language];
     if (item === t.menu.directors) setActiveModal('directors');
@@ -89,10 +111,10 @@ export default function App() {
   
   const handleLogoClick = useCallback(() => {
     setActiveModal(null);
-    setIsVideoOpen(false);
+    setIsVideoOpen(false); // Reseta o estado de vídeo aberto ao clicar no logo
   }, []);
 
-  // Agora, o vídeo de fundo sempre será 'video.mp4'
+  // Define a fonte do vídeo de fundo diretamente para o arquivo importado
   const videoSource = backgroundVideo; 
 
   return (
@@ -101,25 +123,25 @@ export default function App() {
       <div className="absolute inset-0 w-full h-full">
         <video
           ref={videoRef}
-          autoPlay
-          loop
-          muted
-          playsInline
-          webkit-playsinline="true"
-          x5-playsinline="true"
+          autoPlay // Tenta iniciar automaticamente
+          loop     // Repete o vídeo
+          muted    // ESSENCIAL para autoplay em navegadores móveis (iOS, Android)
+          playsInline // ESSENCIAL para reprodução in-line no iOS, não em fullscreen
+          webkit-playsinline="true" // Compatibilidade para Webkit (iOS Safari)
+          x5-playsinline="true"     // Compatibilidade para alguns navegadores chineses
           className="absolute inset-0 w-full h-full object-cover"
         >
-          {/* Usa o 'videoSource' que aponta para 'video.mp4' */}
           <source src={videoSource} type="video/mp4" />
+          Seu navegador não suporta a tag de vídeo.
         </video>
       </div>
 
-      {/* Os blocos de vídeo do Vimeo foram removidos, pois não serão mais usados para o background */}
-
+      {/* Animação de Introdução */}
       <AnimatePresence>
         {showIntro && <IntroAnimation onAnimationComplete={() => setShowIntro(false)} />}
       </AnimatePresence>
 
+      {/* Conteúdo Principal da Aplicação (após a introdução) */}
       {!showIntro && (
         <motion.div
           className="relative z-10 h-full"
@@ -128,9 +150,11 @@ export default function App() {
           transition={{ duration: 0.8, delay: 0.2 }}
         >
           <Logo onClick={handleLogoClick} />
+          {/* O LanguageSwitcher e o Menu só aparecem se nenhum modal estiver ativo e nenhum vídeo interno estiver aberto */}
           {!activeModal && !isVideoOpen && <LanguageSwitcher language={language} onChange={setLanguage} />}
           {!isVideoOpen && <Menu onItemClick={handleMenuClick} language={language} />}
 
+          {/* Modais de Seções com carregamento lazy */}
           <Suspense fallback={null}>
             {activeModal === 'directors' && (
               <Modal isOpen onClose={handleCloseModal} direction="left">
