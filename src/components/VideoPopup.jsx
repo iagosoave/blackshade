@@ -1,141 +1,190 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Maximize2 } from 'lucide-react';
-import { translations } from '../config/translations';
+import { X, ExternalLink } from 'lucide-react';
 
-export default function VideoPopup({ videoUrl, onClose, language = 'pt' }) {
+export default function VideoPopup({ videoUrl, onClose }) {
   const [isMobile, setIsMobile] = useState(false);
-  const t = translations[language] || translations.pt;
+  const [showFallback, setShowFallback] = useState(false);
   
   useEffect(() => {
+    // Detecta mobile
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+      const mobile = window.innerWidth < 768 || 
+                    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      setIsMobile(mobile);
     };
     
     checkMobile();
     window.addEventListener('resize', checkMobile);
     
-    // Previne scroll quando o popup está aberto
+    // Previne scroll
     document.body.style.overflow = 'hidden';
+    
+    // Timeout para mostrar fallback se o iframe não carregar
+    const fallbackTimer = setTimeout(() => {
+      if (isMobile) {
+        setShowFallback(true);
+      }
+    }, 3000);
     
     return () => {
       window.removeEventListener('resize', checkMobile);
-      document.body.style.overflow = 'auto';
+      document.body.style.overflow = '';
+      clearTimeout(fallbackTimer);
     };
-  }, []);
+  }, [isMobile]);
 
   if (!videoUrl) {
     return null;
   }
 
+  // Extrai o ID do Vimeo
   const getVimeoId = (url) => {
-    const regex = /(?:vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/(?:[^/]*)\/videos\/|album\/\d+\/video\/|video\/|)(\d+)(?:[.+]*)?)$/;
-    const match = url.match(regex);
-    return match ? match[1] : null;
+    const patterns = [
+      /vimeo\.com\/(\d+)/,
+      /player\.vimeo\.com\/video\/(\d+)/,
+      /vimeo\.com\/video\/(\d+)/
+    ];
+    
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) return match[1];
+    }
+    return null;
   };
 
   const vimeoId = getVimeoId(videoUrl);
 
   if (!vimeoId) {
-    console.error("VideoPopup: URL do Vimeo inválida ou ID não encontrado:", videoUrl);
-    return null;
+    return (
+      <motion.div
+        className="fixed inset-0 bg-black z-[9999] flex items-center justify-center p-8"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
+        <div className="text-white text-center">
+          <p className="mb-4">Erro: URL do vídeo inválida</p>
+          <button
+            onClick={onClose}
+            className="px-6 py-2 bg-white/20 rounded hover:bg-white/30"
+          >
+            Fechar
+          </button>
+        </div>
+      </motion.div>
+    );
   }
 
-  // URL com autoplay e controles
-  const vimeoEmbedUrl = `https://player.vimeo.com/video/${vimeoId}?autoplay=1&loop=0&byline=0&portrait=0&title=0&transparent=0&controls=1&playsinline=1`;
+  // Se for mobile e mostrar fallback, oferece opção de abrir externamente
+  if (isMobile && showFallback) {
+    return (
+      <motion.div
+        className="fixed inset-0 bg-black z-[9999] flex items-center justify-center p-8"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
+        <div className="text-white text-center max-w-sm">
+          <p className="mb-6">O vídeo está com dificuldades para carregar no seu dispositivo.</p>
+          <div className="space-y-3">
+            <button
+              onClick={() => {
+                window.open(videoUrl, '_blank');
+                onClose();
+              }}
+              className="w-full px-6 py-3 bg-white text-black rounded flex items-center justify-center gap-2"
+            >
+              <ExternalLink size={20} />
+              Abrir no Vimeo
+            </button>
+            <button
+              onClick={() => setShowFallback(false)}
+              className="w-full px-6 py-2 bg-white/20 rounded"
+            >
+              Tentar novamente
+            </button>
+            <button
+              onClick={onClose}
+              className="w-full px-6 py-2 text-white/60"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
 
-  const handleFullscreen = () => {
-    const iframe = document.querySelector('#vimeo-player');
-    if (iframe) {
-      if (iframe.requestFullscreen) {
-        iframe.requestFullscreen();
-      } else if (iframe.webkitRequestFullscreen) {
-        iframe.webkitRequestFullscreen();
-      } else if (iframe.msRequestFullscreen) {
-        iframe.msRequestFullscreen();
-      }
-    }
-  };
+  // Player embed URL otimizada
+  const embedUrl = `https://player.vimeo.com/video/${vimeoId}?` + 
+    new URLSearchParams({
+      autoplay: '1',
+      playsinline: '1',
+      controls: '1',
+      title: '0',
+      byline: '0',
+      portrait: '0',
+      responsive: '1'
+    }).toString();
 
   return (
     <AnimatePresence>
-      {videoUrl && (
-        <motion.div
-          className="fixed inset-0 z-[100] bg-black"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          {/* Header com botões */}
-          <div className="absolute top-0 left-0 right-0 z-[110] flex justify-between items-center p-4 md:p-6">
-            {/* Botão Fullscreen (mobile) */}
-            {isMobile && (
-              <motion.button
-                className="text-white p-2 bg-black/50 rounded-lg backdrop-blur-sm"
-                onClick={handleFullscreen}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.4 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <Maximize2 size={24} strokeWidth={1.5} />
-              </motion.button>
+      <motion.div
+        className="fixed inset-0 bg-black z-[9999]"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
+        {/* Header com botões */}
+        <div className="absolute top-0 left-0 right-0 flex justify-between items-center p-4 z-[10000]">
+          {/* Botão de abrir externamente (mobile) */}
+          {isMobile && (
+            <button
+              onClick={() => {
+                window.open(videoUrl, '_blank');
+                onClose();
+              }}
+              className="bg-black/50 backdrop-blur text-white p-2 rounded-full"
+              title="Abrir no Vimeo"
+            >
+              <ExternalLink size={20} />
+            </button>
+          )}
+          
+          {!isMobile && <div />}
+          
+          {/* Botão fechar */}
+          <button
+            onClick={onClose}
+            className="bg-black/50 backdrop-blur text-white p-2 rounded-full"
+          >
+            <X size={24} />
+          </button>
+        </div>
+        
+        {/* Container do vídeo */}
+        <div className="w-full h-full flex items-center justify-center p-4">
+          <div className="relative w-full h-full max-w-6xl max-h-[90vh] bg-black">
+            {/* Loading indicator */}
+            {!showFallback && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-white/50">Carregando vídeo...</div>
+              </div>
             )}
             
-            {/* Espaçador invisível para manter o X à direita quando não há botão fullscreen */}
-            {!isMobile && <div />}
-            
-            {/* Botão Fechar */}
-            <motion.button
-              className="text-white p-2 bg-black/50 rounded-lg backdrop-blur-sm"
-              onClick={onClose}
-              initial={{ opacity: 0, rotate: -90 }}
-              animate={{ opacity: 1, rotate: 0 }}
-              transition={{ delay: 0.3 }}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              <X size={28} strokeWidth={1.5} />
-            </motion.button>
-          </div>
-          
-          {/* Container do vídeo */}
-          <div className="w-full h-full flex items-center justify-center">
+            {/* Iframe */}
             <iframe
-              id="vimeo-player"
-              src={vimeoEmbedUrl}
-              frameBorder="0"
-              allow="autoplay; fullscreen; picture-in-picture; clipboard-write"
+              key={vimeoId}
+              src={embedUrl}
+              className="absolute inset-0 w-full h-full"
+              style={{ border: 'none' }}
+              allow="autoplay; fullscreen; picture-in-picture"
               allowFullScreen
-              className="w-full h-full"
-              title="Video Player"
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                backgroundColor: '#000'
-              }}
+              onLoad={() => setShowFallback(false)}
+              onError={() => setShowFallback(true)}
             />
           </div>
-          
-          {/* Dica de orientação no mobile */}
-          {isMobile && (
-            <motion.div 
-              className="absolute bottom-4 left-0 right-0 text-center pointer-events-none"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-            >
-              <p className="text-white text-xs opacity-50 px-4">
-                {t.video.betterExperience}
-              </p>
-            </motion.div>
-          )}
-        </motion.div>
-      )}
+        </div>
+      </motion.div>
     </AnimatePresence>
   );
 }
