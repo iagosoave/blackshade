@@ -81,7 +81,13 @@ export const translations = {
       }
     },
     common: {
-      soon: 'Coming soon'
+      soon: 'Em breve'
+    },
+    video: {
+      playButton: 'Toque para reproduzir',
+      rotateHint: 'Gire o dispositivo para tela cheia',
+      betterExperience: 'Gire seu dispositivo para melhor experiência'
     }
   }
+
 };

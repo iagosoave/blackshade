@@ -6,7 +6,6 @@ import LanguageSwitcher from './components/LanguageSwitcher';
 import Modal from './components/Modal';
 import useContentful from './hocks/useContentful';
 import logo from './logo.png';
-import { translations } from './config/translations';
 
 const DirectorsSection = lazy(() => import('./sections/DirectorsSection'));
 const MusicSection = lazy(() => import('./sections/MusicSection'));
@@ -244,19 +243,15 @@ export default function App() {
   }, [posterImage]);
 
   const handleMenuClick = useCallback((item) => {
-    const t = translations[language];
-    if (item === t.menu.directors) setActiveModal('directors');
-    else if (item === t.menu.music) setActiveModal('music');
-    else if (item === t.menu.ai) setActiveModal('ai');
-    else if (item === t.menu.contact) setActiveModal('contact');
-  }, [language]);
+    const normalizedItem = item.toLowerCase();
+    if (normalizedItem.includes('diretor')) setActiveModal('directors');
+    else if (normalizedItem.includes('música')) setActiveModal('music');
+    else if (normalizedItem.includes('ia')) setActiveModal('ai');
+    else if (normalizedItem.includes('contat')) setActiveModal('contact');
+  }, []);
 
   const handleCloseModal = useCallback(() => setActiveModal(null), []);
-  
-  const handleLogoClick = useCallback(() => {
-    setActiveModal(null);
-    setIsVideoOpen(false);
-  }, []);
+  const handleLogoClick = useCallback(() => setActiveModal(null), []);
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-black">
