@@ -65,35 +65,52 @@ export default function App() {
     setIsVideoOpen(false);
   }, []);
 
-  // Pega a URL do vídeo e poster do Contentful
+  // Pega a URL do vídeo do Contentful
   const videoUrl = homepageData?.videoUrl || null;
-  const posterImage = homepageData?.posterImage ? `https:${homepageData.posterImage}` : null;
+
+  // Extrai o ID do Vimeo se for uma URL do Vimeo
+  const getVimeoId = (url) => {
+    if (!url) return null;
+    // Tenta diferentes formatos de URL do Vimeo
+    const patterns = [
+      /vimeo\.com\/(\d+)/,
+      /vimeo\.com\/video\/(\d+)/,
+      /player\.vimeo\.com\/video\/(\d+)/
+    ];
+    
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match && match[1]) {
+        return match[1];
+      }
+    }
+    return null;
+  };
+
+  const vimeoId = getVimeoId(videoUrl);
+  
+  console.log('Video URL:', videoUrl);
+  console.log('Vimeo ID:', vimeoId);
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-black">
-      {/* Vídeo de Background - Simples */}
-      {videoUrl && (
-        <div className="absolute inset-0 w-full h-full">
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover"
-            poster={posterImage}
-          >
-            <source src={videoUrl} type="video/mp4" />
-          </video>
+      {/* Debug info - remova depois de testar */}
+      {!vimeoId && videoUrl && (
+        <div className="absolute top-20 left-6 text-white text-xs bg-red-500 p-2 z-50">
+          URL não reconhecida: {videoUrl}
         </div>
       )}
-      
-      {/* Se não tiver vídeo mas tiver poster, mostra a imagem */}
-      {!videoUrl && posterImage && (
-        <div className="absolute inset-0 w-full h-full">
-          <img 
-            src={posterImage} 
-            alt="Background"
-            className="absolute inset-0 w-full h-full object-cover"
+
+      {/* Vídeo de Background */}
+      {vimeoId && (
+        <div className="absolute inset-0 w-full h-full overflow-hidden bg-black">
+          <iframe
+            src={`https://player.vimeo.com/video/${vimeoId}?autoplay=1&loop=1&muted=1&background=1&playsinline=1&quality=auto&responsive=1`}
+            className="absolute inset-0 w-full h-full"
+            frameBorder="0"
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowFullScreen
+            title="Background Video"
           />
         </div>
       )}
