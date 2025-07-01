@@ -7,9 +7,9 @@ export default function ContactSection({ language }) {
   const contactData = t.contact;
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen relative">
       <motion.h2 
-        className="fixed top-20 left-6 text-white text-4xl md:text-5xl z-10"
+        className="fixed top-20 left-6 md:left-8 text-white text-4xl md:text-5xl lg:text-6xl xl:text-7xl z-10"
         style={{ fontFamily: 'Impact, Haettenschweiler, Arial Black, sans-serif' }}
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
@@ -18,7 +18,7 @@ export default function ContactSection({ language }) {
         {contactData.title}
       </motion.h2>
       
-      <div className="flex items-center justify-center min-h-screen px-6 py-24 md:p-8">
+      <div className="min-h-screen flex items-center justify-center px-6 md:px-8">
         <motion.div
           className="max-w-2xl w-full"
           initial={{ opacity: 0, y: 30 }}
@@ -36,7 +36,7 @@ export default function ContactSection({ language }) {
               </p>
               <a 
                 href={`mailto:${contactData.info.email}`} 
-                className="text-lg md:text-xl hover:opacity-70 transition-opacity block break-all"
+                className="text-lg md:text-xl hover:opacity-70 transition-opacity inline-block break-all"
               >
                 {contactData.info.email}
               </a>
@@ -52,7 +52,7 @@ export default function ContactSection({ language }) {
               </p>
               <a 
                 href={`tel:${contactData.info.phone}`} 
-                className="text-lg md:text-xl hover:opacity-70 transition-opacity block"
+                className="text-lg md:text-xl hover:opacity-70 transition-opacity inline-block"
               >
                 {contactData.info.phone}
               </a>
@@ -70,7 +70,7 @@ export default function ContactSection({ language }) {
                 href={`https://wa.me/${contactData.info.whatsapp.replace(/\D/g, '')}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-lg md:text-xl hover:opacity-70 transition-opacity block"
+                className="text-lg md:text-xl hover:opacity-70 transition-opacity inline-block"
               >
                 {contactData.info.whatsapp}
               </a>
@@ -88,7 +88,7 @@ export default function ContactSection({ language }) {
                 href={`https://instagram.com/${contactData.info.instagram.replace('@', '')}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-lg md:text-xl hover:opacity-70 transition-opacity block"
+                className="text-lg md:text-xl hover:opacity-70 transition-opacity inline-block"
               >
                 {contactData.info.instagram}
               </a>
@@ -102,7 +102,7 @@ export default function ContactSection({ language }) {
               <p className="opacity-60 text-xs md:text-sm uppercase tracking-wider mb-2">
                 {contactData.fields.address}
               </p>
-              <p className="text-lg md:text-xl leading-relaxed">
+              <p className="text-lg md:text-xl">
                 {contactData.info.address}
               </p>
             </motion.div>
