@@ -120,16 +120,18 @@ export default function App() {
   return (
     <div className="fixed inset-0 overflow-hidden bg-black">
       {/* Vídeo de Background - MP4 direto */}
+     {/* Vídeo de Background - MP4 direto */}
       <div className="absolute inset-0 w-full h-full">
         <video
           ref={videoRef}
-          autoPlay // Tenta iniciar automaticamente
-          loop     // Repete o vídeo
-          muted    // ESSENCIAL para autoplay em navegadores móveis (iOS, Android)
-          playsInline // ESSENCIAL para reprodução in-line no iOS, não em fullscreen
-          webkit-playsinline="true" // Compatibilidade para Webkit (iOS Safari)
-          x5-playsinline="true"     // Compatibilidade para alguns navegadores chineses
+          autoPlay={true}
+          loop={true}
+          muted={true}
+          playsInline={true}
+          controls={false}
+          preload="auto"
           className="absolute inset-0 w-full h-full object-cover"
+          style={{ pointerEvents: 'none' }}
         >
           <source src={videoSource} type="video/mp4" />
           Seu navegador não suporta a tag de vídeo.
