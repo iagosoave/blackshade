@@ -8,6 +8,8 @@ import LanguageSwitcher from './components/LanguageSwitcher';
 import Modal from './components/Modal';
 
 // Ganchos customizados (mantido, caso seja usado para outros dados)
+// Se 'useContentful' não for mais usado em nenhum lugar do App, você pode removê-lo completamente.
+// Por enquanto, vamos deixá-lo caso você o use para outros dados que não o vídeo.
 import useContentful from './hocks/useContentful'; 
 
 // Imagens e Vídeo
@@ -23,9 +25,7 @@ const MusicSection = lazy(() => import('./sections/MusicSection'));
 const AISection = lazy(() => import('./sections/AISection'));
 const ContactSection = lazy(() => import('./sections/ContactSection'));
 
-// O componente IntroAnimation não será mais renderizado,
-// mas vamos mantê-lo comentado caso você queira reativá-lo facilmente no futuro.
-/*
+// Componente de Animação de Introdução
 const IntroAnimation = ({ onAnimationComplete }) => {
   useEffect(() => {
     const timer = setTimeout(onAnimationComplete, 2500);
@@ -55,16 +55,16 @@ const IntroAnimation = ({ onAnimationComplete }) => {
     </motion.div>
   );
 };
-*/
 
 // Componente Principal da Aplicação
 export default function App() {
   const [activeModal, setActiveModal] = useState(null);
   const [language, setLanguage] = useState('pt');
-  const [isVideoOpen, setIsVideoOpen] = useState(false); 
-  // Alterado para 'false' para desativar a animação de introdução
-  const [showIntro, setShowIntro] = useState(false); 
+  const [isVideoOpen, setIsVideoOpen] = useState(false); // Mantido para controle de modais de vídeo internos (se houver)
+  const [showIntro, setShowIntro] = useState(true);
   
+  // 'homepageData' mantido apenas se for usado para outras informações
+  // Se não for mais usado para NADA, você pode remover esta linha e o import de 'useContentful'.
   const { data: homepageData } = useContentful('homepage'); 
   
   const videoRef = useRef(null);
@@ -74,8 +74,8 @@ export default function App() {
     const videoElement = videoRef.current;
 
     if (videoElement) {
-      videoElement.muted = true; 
-      videoElement.playsInline = true; 
+      videoElement.muted = true; // Garante que esteja mutado para autoplay
+      videoElement.playsInline = true; // Garante playsInline
 
       const playVideo = () => {
         videoElement.play().catch(err => {
@@ -92,6 +92,7 @@ export default function App() {
         playVideo();
       } else {
         videoElement.addEventListener('loadeddata', playVideo);
+        // Limpa o event listener se o componente for desmontado
         return () => videoElement.removeEventListener('loadeddata', playVideo);
       }
     }
@@ -110,7 +111,7 @@ export default function App() {
   
   const handleLogoClick = useCallback(() => {
     setActiveModal(null);
-    setIsVideoOpen(false); 
+    setIsVideoOpen(false); // Reseta o estado de vídeo aberto ao clicar no logo
   }, []);
 
   // Define a fonte do vídeo de fundo diretamente para o arquivo importado
@@ -119,6 +120,7 @@ export default function App() {
   return (
     <div className="fixed inset-0 overflow-hidden bg-black">
       {/* Vídeo de Background - MP4 direto */}
+     {/* Vídeo de Background - MP4 direto */}
       <div className="absolute inset-0 w-full h-full">
         <video
           ref={videoRef}
@@ -127,7 +129,7 @@ export default function App() {
           muted={true}
           playsInline={true}
           controls={false}
-          preload="auto" // Mantenha ou tente 'metadata' se necessário
+          preload="auto"
           className="absolute inset-0 w-full h-full object-cover"
           style={{ pointerEvents: 'none' }}
         >
@@ -136,46 +138,49 @@ export default function App() {
         </video>
       </div>
 
-      {/* A AnimatePresence e o IntroAnimation não serão renderizados devido a showIntro = false */}
-      {/* <AnimatePresence>
+      {/* Animação de Introdução */}
+      <AnimatePresence>
         {showIntro && <IntroAnimation onAnimationComplete={() => setShowIntro(false)} />}
-      </AnimatePresence> */}
+      </AnimatePresence>
 
-      {/* Conteúdo Principal da Aplicação (sempre visível agora) */}
-      {/* A condição !showIntro não é mais necessária aqui, mas pode ser mantida ou removida */}
-      <motion.div
-        className="relative z-10 h-full"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8, delay: 0.2 }}
-      >
-        <Logo onClick={handleLogoClick} />
-        {!activeModal && !isVideoOpen && <LanguageSwitcher language={language} onChange={setLanguage} />}
-        {!isVideoOpen && <Menu onItemClick={handleMenuClick} language={language} />}
+      {/* Conteúdo Principal da Aplicação (após a introdução) */}
+      {!showIntro && (
+        <motion.div
+          className="relative z-10 h-full"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+        >
+          <Logo onClick={handleLogoClick} />
+          {/* O LanguageSwitcher e o Menu só aparecem se nenhum modal estiver ativo e nenhum vídeo interno estiver aberto */}
+          {!activeModal && !isVideoOpen && <LanguageSwitcher language={language} onChange={setLanguage} />}
+          {!isVideoOpen && <Menu onItemClick={handleMenuClick} language={language} />}
 
-        <Suspense fallback={null}>
-          {activeModal === 'directors' && (
-            <Modal isOpen onClose={handleCloseModal} direction="left">
-              <DirectorsSection language={language} onVideoOpen={setIsVideoOpen} />
-            </Modal>
-          )}
-          {activeModal === 'music' && (
-            <Modal isOpen onClose={handleCloseModal} direction="right">
-              <MusicSection language={language} onVideoOpen={setIsVideoOpen} />
-            </Modal>
-          )}
-          {activeModal === 'ai' && (
-            <Modal isOpen onClose={handleCloseModal} direction="left">
-              <AISection language={language} onVideoOpen={setIsVideoOpen} />
-            </Modal>
-          )}
-          {activeModal === 'contact' && (
-            <Modal isOpen onClose={handleCloseModal} direction="right">
-              <ContactSection language={language} />
-            </Modal>
-          )}
-        </Suspense>
-      </motion.div>
+          {/* Modais de Seções com carregamento lazy */}
+          <Suspense fallback={null}>
+            {activeModal === 'directors' && (
+              <Modal isOpen onClose={handleCloseModal} direction="left">
+                <DirectorsSection language={language} onVideoOpen={setIsVideoOpen} />
+              </Modal>
+            )}
+            {activeModal === 'music' && (
+              <Modal isOpen onClose={handleCloseModal} direction="right">
+                <MusicSection language={language} onVideoOpen={setIsVideoOpen} />
+              </Modal>
+            )}
+            {activeModal === 'ai' && (
+              <Modal isOpen onClose={handleCloseModal} direction="left">
+                <AISection language={language} onVideoOpen={setIsVideoOpen} />
+              </Modal>
+            )}
+            {activeModal === 'contact' && (
+              <Modal isOpen onClose={handleCloseModal} direction="right">
+                <ContactSection language={language} />
+              </Modal>
+            )}
+          </Suspense>
+        </motion.div>
+      )}
     </div>
   );
 }
