@@ -60,13 +60,12 @@ export default function DirectorPortfolio({ director, onBack, loading, onVideoOp
                       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/30 to-black/60" />
                     </div>
                     
-                    <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
-                      <h3 className="text-white text-2xl md:text-3xl tracking-wider"
-                          style={{ fontFamily: 'Impact, Haettenschweiler, Arial Black, sans-serif' }}>
-                        {item.title}
-                      </h3>
-                      <p className="text-gray-300 text-sm mt-2 opacity-80">{item.description}</p>
-                    </div>
+                   <div className="absolute inset-0 flex items-center justify-center p-4">
+    <h3 className="text-white text-xl md:text-2xl tracking-wider text-center"
+        style={{ fontFamily: 'Impact, Haettenschweiler, Arial Black, sans-serif' }}>
+      {item.title}
+    </h3>
+  </div>
                   </motion.div>
                 ))
               ) : (

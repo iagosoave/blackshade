@@ -1,2 +1,16 @@
 @import 'tailwindcss';
 
+/* index.css */
+
+body {
+  font-family: 'Impact', 'Haettenschweiler', 'Arial Black', sans-serif;
+}
+
+/* Se você usa Tailwind CSS, as classes de fonte padrão do Tailwind geralmente afetam o body.
+   Se tiver elementos que insistem em não pegar a fonte, pode ser necessário ser mais específico.
+   Por exemplo, para resetar em todos os elementos: */
+/*
+* {
+  font-family: 'Impact', 'Haettenschweiler', 'Arial Black', sans-serif !important;
+}
+*/

@@ -6,12 +6,13 @@ import useContentful from '../hocks/useContentful';
 
 export default function DirectorsSection({ language, onVideoOpen }) {
   const [selectedDirector, setSelectedDirector] = useState(null);
-  
-  // Nomes dos diretores fixos no código
+
+  // Nomes dos diretores fixos no código e adicionando placeholders para imagens de banner
+  // ATENÇÃO: Substitua estas URLs por URLs reais das imagens de banner dos seus diretores.
   const directors = [
-    { id: '1', name: 'Gustavo Vargas' },
-    { id: '2', name: 'Alice Demier' },
-    { id: '3', name: 'Wolvz' }
+    { id: '1', name: 'Gustavo Vargas', bannerImage: 'https://via.placeholder.com/1920x400?text=Gustavo+Vargas+Banner' },
+    { id: '2', name: 'Alice Demier', bannerImage: 'https://via.placeholder.com/1920x400?text=Alice+Demier+Banner' }, // Imagem para Alice Demier
+    { id: '3', name: 'Wolvz', bannerImage: 'https://via.placeholder.com/1920x400?text=Wolvz+Banner' }
   ];
 
   // Busca portfolio do diretor selecionado no Contentful
@@ -28,13 +29,13 @@ export default function DirectorsSection({ language, onVideoOpen }) {
   return (
     <>
       {!selectedDirector ? (
-        <DirectorsList 
-          directors={directors} 
+        <DirectorsList
+          directors={directors}
           onSelectDirector={setSelectedDirector}
         />
       ) : (
-        <DirectorPortfolio 
-          director={directorWithPortfolio} 
+        <DirectorPortfolio
+          director={directorWithPortfolio}
           onBack={() => setSelectedDirector(null)}
           loading={loading}
           onVideoOpen={onVideoOpen}
