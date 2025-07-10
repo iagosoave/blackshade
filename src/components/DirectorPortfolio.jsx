@@ -19,19 +19,25 @@ export default function DirectorPortfolio({ director, onBack, loading, onVideoOp
     if (onVideoOpen) onVideoOpen(false);
   };
 
-  return (
+ return (
     <>
       <div className="min-h-screen">
-        <motion.button
-          className="fixed top-20 left-6 text-white text-sm tracking-wider z-50 hover:opacity-70"
-          onClick={onBack}
-          initial={{ opacity: 0, x: -20 }}
+        {/* Barra de ações no topo direito */}
+        <motion.div 
+          className="fixed top-6 right-16 z-50"
+          initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.3 }}
-          style={{ fontFamily: 'Impact, Haettenschweiler, Arial Black, sans-serif' }}
         >
-          {t.directors.back}
-        </motion.button>
+          <button
+            className="text-white text-sm tracking-wider hover:opacity-70 flex items-center gap-2 px-4 py-2 border border-white/20 rounded-full transition-all hover:border-white/40"
+            onClick={onBack}
+            style={{ fontFamily: 'Impact, Haettenschweiler, Arial Black, sans-serif' }}
+          >
+            <span className="text-lg">←</span>
+            {t.directors.back.replace('← ', '')}
+          </button>
+        </motion.div>
         
         <div>
           {loading ? (

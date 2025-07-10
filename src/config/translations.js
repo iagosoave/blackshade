@@ -2,24 +2,32 @@
 export const translations = {
   pt: {
     menu: {
+      about: 'QUEM SOMOS',
       directors: 'DIRETORES',
-      music: 'MÚSICA',
-      ai: 'IA',
+      cosmos: 'COSMOS/VFX',
+      daydream: 'DAYDREAM/IA',
       contact: 'CONTATO'
+    },
+    about: {
+      title: 'QUEM SOMOS',
+      loading: 'Carregando...',
+      soon: 'Em breve'
     },
     directors: {
       title: 'DIRETORES',
-      back: '← VOLTAR',
+      back: 'VOLTAR',
       loading: 'Carregando portfolio...',
       soon: 'Portfolio em breve'
     },
-    music: {
-      title: 'MÚSICA',
-      loading: 'Carregando...'
+    cosmos: {
+      title: 'COSMOS/VFX',
+      loading: 'Carregando...',
+      soon: 'Em breve'
     },
-    ai: {
-      title: 'INTELIGÊNCIA ARTIFICIAL',
-      loading: 'Carregando...'
+    daydream: {
+      title: 'DAYDREAM/IA',
+      loading: 'Carregando...',
+      soon: 'Em breve'
     },
     contact: {
       title: 'CONTATO',
@@ -39,29 +47,38 @@ export const translations = {
       }
     },
     common: {
-      soon: 'Em breve'
+      soon: 'Em breve',
+      loading: 'Carregando...'
     }
   },
   en: {
     menu: {
+      about: 'ABOUT US',
       directors: 'DIRECTORS',
-      music: 'MUSIC',
-      ai: 'AI',
+      cosmos: 'COSMOS/VFX',
+      daydream: 'DAYDREAM/AI',
       contact: 'CONTACT'
+    },
+    about: {
+      title: 'ABOUT US',
+      loading: 'Loading...',
+      soon: 'Coming soon'
     },
     directors: {
       title: 'DIRECTORS',
-      back: '← BACK',
+      back: 'BACK',
       loading: 'Loading portfolio...',
       soon: 'Portfolio coming soon'
     },
-    music: {
-      title: 'MUSIC',
-      loading: 'Loading...'
+    cosmos: {
+      title: 'COSMOS/VFX',
+      loading: 'Loading...',
+      soon: 'Coming soon'
     },
-    ai: {
-      title: 'ARTIFICIAL INTELLIGENCE',
-      loading: 'Loading...'
+    daydream: {
+      title: 'DAYDREAM/AI',
+      loading: 'Loading...',
+      soon: 'Coming soon'
     },
     contact: {
       title: 'CONTACT',
@@ -81,13 +98,8 @@ export const translations = {
       }
     },
     common: {
-      soon: 'Em breve'
-    },
-    video: {
-      playButton: 'Toque para reproduzir',
-      rotateHint: 'Gire o dispositivo para tela cheia',
-      betterExperience: 'Gire seu dispositivo para melhor experiência'
+      soon: 'Coming soon',
+      loading: 'Loading...'
     }
   }
-
 };

@@ -7,22 +7,21 @@ import Menu from './components/Menu';
 import LanguageSwitcher from './components/LanguageSwitcher';
 import Modal from './components/Modal';
 
-// Ganchos customizados (mantido, caso seja usado para outros dados)
-// Se 'useContentful' não for mais usado em nenhum lugar do App, você pode removê-lo completamente.
-// Por enquanto, vamos deixá-lo caso você o use para outros dados que não o vídeo.
-import useContentful from './hocks/useContentful'; 
+// Ganchos customizados
+import useContentful from './hocks/useContentful';
 
 // Imagens e Vídeo
 import logo from './logo.png';
-import backgroundVideo from './video.mp4'; // Importa diretamente o seu vídeo local
+import backgroundVideo from './video.mp4';
 
 // Traduções
 import { translations } from './config/translations';
 
 // Carregamento lazy das seções
+const AboutSection = lazy(() => import('./sections/AboutSection'));
 const DirectorsSection = lazy(() => import('./sections/DirectorsSection'));
-const MusicSection = lazy(() => import('./sections/MusicSection'));
-const AISection = lazy(() => import('./sections/AISection'));
+const CosmosSection = lazy(() => import('./sections/CosmosSection'));
+const DaydreamSection = lazy(() => import('./sections/DaydreamSection'));
 const ContactSection = lazy(() => import('./sections/ContactSection'));
 
 // Componente de Animação de Introdução
@@ -58,69 +57,78 @@ const IntroAnimation = ({ onAnimationComplete }) => {
 
 // Componente Principal da Aplicação
 export default function App() {
+  // Estados
   const [activeModal, setActiveModal] = useState(null);
   const [language, setLanguage] = useState('pt');
-  const [isVideoOpen, setIsVideoOpen] = useState(false); // Mantido para controle de modais de vídeo internos (se houver)
+  const [isVideoOpen, setIsVideoOpen] = useState(false);
   const [showIntro, setShowIntro] = useState(true);
   
-  // 'homepageData' mantido apenas se for usado para outras informações
-  // Se não for mais usado para NADA, você pode remover esta linha e o import de 'useContentful'.
-  const { data: homepageData } = useContentful('homepage'); 
-  
+  // Refs
   const videoRef = useRef(null);
+  
+  // Dados do Contentful (se necessário)
+  const { data: homepageData } = useContentful('homepage');
 
-  // Efeito para garantir o autoplay e tratamento de erros no vídeo de fundo
+  // Efeito para garantir o autoplay do vídeo de fundo
   useEffect(() => {
     const videoElement = videoRef.current;
 
     if (videoElement) {
-      videoElement.muted = true; // Garante que esteja mutado para autoplay
-      videoElement.playsInline = true; // Garante playsInline
+      videoElement.muted = true;
+      videoElement.playsInline = true;
 
       const playVideo = () => {
         videoElement.play().catch(err => {
           console.warn('Erro ao tentar reproduzir o vídeo automaticamente:', err);
-          // Fallback: Tenta reproduzir com interação do usuário se o autoplay for bloqueado
           document.addEventListener('click', () => {
             videoElement.play().catch(e => console.error('Erro ao reproduzir vídeo após clique:', e));
           }, { once: true });
         });
       };
       
-      // Tenta tocar quando o vídeo estiver pronto
       if (videoElement.readyState >= 3) {
         playVideo();
       } else {
         videoElement.addEventListener('loadeddata', playVideo);
-        // Limpa o event listener se o componente for desmontado
         return () => videoElement.removeEventListener('loadeddata', playVideo);
       }
     }
-  }, []); // Dependência vazia, pois o vídeo de fundo é fixo e não depende de dados externos.
+  }, []);
 
-  // Funções de callback para o menu e logo
+  // Funções de callback
   const handleMenuClick = useCallback((item) => {
     const t = translations[language];
-    if (item === t.menu.directors) setActiveModal('directors');
-    else if (item === t.menu.music) setActiveModal('music');
-    else if (item === t.menu.ai) setActiveModal('ai');
-    else if (item === t.menu.contact) setActiveModal('contact');
-  }, [language]);
+    
+    // Mapeia os itens do menu para os modais
+    let targetModal = null;
+    if (item === t.menu.about) targetModal = 'about';
+    else if (item === t.menu.directors) targetModal = 'directors';
+    else if (item === t.menu.cosmos) targetModal = 'cosmos';
+    else if (item === t.menu.daydream) targetModal = 'daydream';
+    else if (item === t.menu.contact) targetModal = 'contact';
+    
+    // Se o modal já está ativo, fecha e reabre para resetar o estado
+    if (activeModal === targetModal) {
+      setActiveModal(null);
+      setTimeout(() => setActiveModal(targetModal), 10);
+    } else {
+      setActiveModal(targetModal);
+    }
+  }, [language, activeModal]);
 
-  const handleCloseModal = useCallback(() => setActiveModal(null), []);
+  const handleCloseModal = useCallback(() => {
+    setActiveModal(null);
+  }, []);
   
   const handleLogoClick = useCallback(() => {
     setActiveModal(null);
-    setIsVideoOpen(false); // Reseta o estado de vídeo aberto ao clicar no logo
+    setIsVideoOpen(false);
   }, []);
 
-  // Define a fonte do vídeo de fundo diretamente para o arquivo importado
-  const videoSource = backgroundVideo; 
-
+  // Renderização
   return (
     <div className="fixed inset-0 overflow-hidden bg-black">
-      {/* Vídeo de Background - MP4 direto */}
-     {/* Vídeo de Background - MP4 direto */}
+      {/* Vídeo de Background */}
       <div className="absolute inset-0 w-full h-full">
         <video
           ref={videoRef}
@@ -133,17 +141,19 @@ export default function App() {
           className="absolute inset-0 w-full h-full object-cover"
           style={{ pointerEvents: 'none' }}
         >
-          <source src={videoSource} type="video/mp4" />
+          <source src={backgroundVideo} type="video/mp4" />
           Seu navegador não suporta a tag de vídeo.
         </video>
       </div>
 
       {/* Animação de Introdução */}
       <AnimatePresence>
-        {showIntro && <IntroAnimation onAnimationComplete={() => setShowIntro(false)} />}
+        {showIntro && (
+          <IntroAnimation onAnimationComplete={() => setShowIntro(false)} />
+        )}
       </AnimatePresence>
 
-      {/* Conteúdo Principal da Aplicação (após a introdução) */}
+      {/* Conteúdo Principal */}
       {!showIntro && (
         <motion.div
           className="relative z-10 h-full"
@@ -151,30 +161,56 @@ export default function App() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
+          {/* Logo */}
           <Logo onClick={handleLogoClick} />
-          {/* O LanguageSwitcher e o Menu só aparecem se nenhum modal estiver ativo e nenhum vídeo interno estiver aberto */}
-          {!activeModal && !isVideoOpen && <LanguageSwitcher language={language} onChange={setLanguage} />}
-          {!isVideoOpen && <Menu onItemClick={handleMenuClick} language={language} />}
+          
+          {/* Language Switcher */}
+          {!activeModal && !isVideoOpen && (
+            <LanguageSwitcher language={language} onChange={setLanguage} />
+          )}
+          
+          {/* Menu */}
+          {!isVideoOpen && (
+            <Menu 
+              onItemClick={handleMenuClick} 
+              language={language} 
+              activeModal={activeModal}
+            />
+          )}
 
-          {/* Modais de Seções com carregamento lazy */}
+          {/* Modais */}
           <Suspense fallback={null}>
-            {activeModal === 'directors' && (
+            {/* Quem Somos */}
+            {activeModal === 'about' && (
               <Modal isOpen onClose={handleCloseModal} direction="left">
+                <AboutSection language={language} />
+              </Modal>
+            )}
+            
+            {/* Diretores */}
+            {activeModal === 'directors' && (
+              <Modal isOpen onClose={handleCloseModal} direction="right">
                 <DirectorsSection language={language} onVideoOpen={setIsVideoOpen} />
               </Modal>
             )}
-            {activeModal === 'music' && (
-              <Modal isOpen onClose={handleCloseModal} direction="right">
-                <MusicSection language={language} onVideoOpen={setIsVideoOpen} />
-              </Modal>
-            )}
-            {activeModal === 'ai' && (
+            
+            {/* Cosmos/VFX */}
+            {activeModal === 'cosmos' && (
               <Modal isOpen onClose={handleCloseModal} direction="left">
-                <AISection language={language} onVideoOpen={setIsVideoOpen} />
+                <CosmosSection language={language} />
               </Modal>
             )}
-            {activeModal === 'contact' && (
+            
+            {/* Daydream/IA */}
+            {activeModal === 'daydream' && (
               <Modal isOpen onClose={handleCloseModal} direction="right">
+                <DaydreamSection language={language} onVideoOpen={setIsVideoOpen} />
+              </Modal>
+            )}
+            
+            {/* Contato */}
+            {activeModal === 'contact' && (
+              <Modal isOpen onClose={handleCloseModal} direction="left">
                 <ContactSection language={language} />
               </Modal>
             )}

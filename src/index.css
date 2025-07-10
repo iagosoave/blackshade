@@ -1,16 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 @import 'tailwindcss';
 
 /* index.css */
-
 body {
-  font-family: 'Impact', 'Haettenschweiler', 'Arial Black', sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 
-/* Se você usa Tailwind CSS, as classes de fonte padrão do Tailwind geralmente afetam o body.
-   Se tiver elementos que insistem em não pegar a fonte, pode ser necessário ser mais específico.
-   Por exemplo, para resetar em todos os elementos: */
-/*
+/* Forçar a fonte Poppins em TODOS os elementos do site */
 * {
-  font-family: 'Impact', 'Haettenschweiler', 'Arial Black', sans-serif !important;
+  font-family: 'Poppins', sans-serif !important;
 }
-*/

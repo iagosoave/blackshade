@@ -8,16 +8,6 @@ export default function ContactSection({ language }) {
 
   return (
     <div className="min-h-screen relative">
-      <motion.h2 
-        className="fixed top-20 left-6 md:left-8 text-white text-4xl md:text-5xl lg:text-6xl xl:text-7xl z-10"
-        style={{ fontFamily: 'Impact, Haettenschweiler, Arial Black, sans-serif' }}
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.6 }}
-      >
-        {contactData.title}
-      </motion.h2>
-      
       <div className="min-h-screen flex items-center justify-center px-6 md:px-8">
         <motion.div
           className="max-w-2xl w-full"
