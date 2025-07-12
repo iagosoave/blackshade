@@ -103,7 +103,7 @@ export const translations = {
         atendimento: 'Service'
       },
       info: {
-        email: 'contact@blackshade.com.br',
+        email: 'contato@blackshade.com.br',
         gusVargas: {
           nome: 'Gus Vargas',
           cel: '+55 11 94237.6027',

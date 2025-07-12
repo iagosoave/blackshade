@@ -1,4 +1,3 @@
-// src/sections/DirectorsSection.jsx
 import React, { useState } from 'react';
 import DirectorsList from '../components/DirectorsList';
 import DirectorPortfolio from '../components/DirectorPortfolio';
@@ -7,20 +6,18 @@ import useContentful from '../hocks/useContentful';
 export default function DirectorsSection({ language, onVideoOpen }) {
   const [selectedDirector, setSelectedDirector] = useState(null);
 
-  // Nomes dos diretores fixos no código e adicionando placeholders para imagens de banner
-  // ATENÇÃO: Substitua estas URLs por URLs reais das imagens de banner dos seus diretores.
   const directors = [
-    { id: '1', name: 'Gustavo Vargas', bannerImage: 'https://via.placeholder.com/1920x400?text=Gustavo+Vargas+Banner' },
-    { id: '2', name: 'Alice Demier', bannerImage: 'https://via.placeholder.com/1920x400?text=Alice+Demier+Banner' }, // Imagem para Alice Demier
-    { id: '3', name: 'Wolvz', bannerImage: 'https://via.placeholder.com/1920x400?text=Wolvz+Banner' }
+    { id: 'alice-demier', name: 'Alice Demier', bannerImage: '' },
+    { id: 'gustavo-vargas', name: 'Gus Vargas', bannerImage: '' },
+    { id: 'rafa-rocha', name: 'Rafa Rocha', bannerImage: '' },
+    { id: 'renata-massetti', name: 'Renata Massetti', bannerImage: '' },
+    { id: 'wolvz', name: 'Wolvz Duo', bannerImage: '' }
   ];
 
-  // Busca portfolio do diretor selecionado no Contentful
   const { data: portfolioData, loading } = useContentful(
     selectedDirector ? `director-${selectedDirector.id}` : null
   );
 
-  // Se um diretor foi selecionado, adiciona o portfolio vindo do Contentful
   const directorWithPortfolio = selectedDirector ? {
     ...selectedDirector,
     portfolio: portfolioData || []

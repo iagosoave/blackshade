@@ -1,12 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createClient } from 'contentful';
 
-// ATENÇÃO: Nunca exponha suas chaves de API diretamente no código em um ambiente de produção.
-// Qualquer pessoa pode inspecionar o código do site e roubá-las.
-// A forma correta é usar Variáveis de Ambiente (Environment Variables).
-// Por exemplo:
-// space: process.env.REACT_APP_CONTENTFUL_SPACE_ID,
-// accessToken: process.env.REACT_APP_CONTENTFUL_ACCESS_TOKEN
 const client = createClient({
   space: "eq48j1dbpqsr",
   accessToken: "GhKBzoLISOk91Q3midcY46iz1pdOlUQcGzGiKhPQycU"
@@ -14,6 +8,7 @@ const client = createClient({
 
 export default function useContentful(contentType) {
   const [data, setData] = useState(null);
+  // CORREÇÃO AQUI: Use useState para inicializar o estado 'loading'
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -31,9 +26,11 @@ export default function useContentful(contentType) {
         if (contentType.startsWith('director-')) {
           const directorId = contentType.replace('director-', '');
           const directorMap = {
-            '1': 'gustavo-vargas',
-            '2': 'alice-demier',
-            '3': 'wolvz'
+            'gustavo-vargas': 'gustavo-vargas',
+            'alice-demier': 'alice-demier',
+            'wolvz': 'wolvz',
+            'rafa-rocha': 'rafa-rocha',
+            'renata-massetti': 'renata-massetti'
           };
 
           response = await client.getEntries({
