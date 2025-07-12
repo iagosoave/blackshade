@@ -26,7 +26,7 @@ export default function ContactSection({ language }) {
           }, { once: true });
         });
       };
-      
+
       if (videoElement.readyState >= 3) {
         playVideo();
       } else {
@@ -65,7 +65,7 @@ export default function ContactSection({ language }) {
           transition={{ duration: 0.6 }}
         >
           <div className="text-white space-y-6 md:space-y-8">
-            
+
             {/* Email Geral Black Shade */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
@@ -75,7 +75,7 @@ export default function ContactSection({ language }) {
               <p className="opacity-60 text-xs md:text-sm uppercase tracking-wider mb-1 whitespace-nowrap">
                 {contactData.fields.email}
               </p>
-              <a 
+              <a
                 href={`mailto:${contactData.info.email}`}
                 className="text-base md:text-lg hover:opacity-70 transition-opacity inline-block break-all"
               >
@@ -92,7 +92,7 @@ export default function ContactSection({ language }) {
               <p className="opacity-60 text-xs md:text-sm uppercase tracking-wider mb-1 whitespace-nowrap">
                 {contactData.fields.producaoExecutiva} - {contactData.info.gusVargas.nome}
               </p>
-              <a 
+              <a
                 href={`https://wa.me/${contactData.info.gusVargas.cel.replace(/\D/g, '')}`}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -100,14 +100,14 @@ export default function ContactSection({ language }) {
               >
                 <FaWhatsapp className="text-xl" /> {contactData.info.gusVargas.cel}
               </a>
-              <a 
+              <a
                 href={`mailto:${contactData.info.gusVargas.email}`}
                 className="text-sm opacity-80 mt-1 hover:opacity-100 transition-opacity block break-all"
               >
                 {contactData.info.gusVargas.email}
               </a>
             </motion.div>
-            
+
             {/* Atendimento - Rodrigo Sivieri */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
@@ -117,7 +117,7 @@ export default function ContactSection({ language }) {
               <p className="opacity-60 text-xs md:text-sm uppercase tracking-wider mb-1 whitespace-nowrap">
                 {contactData.fields.atendimento} - {contactData.info.rodrigoSivieri.nome}
               </p>
-              <a 
+              <a
                 href={`https://wa.me/${contactData.info.rodrigoSivieri.cel.replace(/\D/g, '')}`}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -125,14 +125,14 @@ export default function ContactSection({ language }) {
               >
                 <FaWhatsapp className="text-xl" /> {contactData.info.rodrigoSivieri.cel}
               </a>
-              <a 
+              <a
                 href={`mailto:${contactData.info.rodrigoSivieri.email}`}
                 className="text-sm opacity-80 mt-1 hover:opacity-100 transition-opacity block break-all"
               >
                 {contactData.info.rodrigoSivieri.email}
               </a>
             </motion.div>
-            
+
             {/* Redes Sociais */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
@@ -143,8 +143,8 @@ export default function ContactSection({ language }) {
                 {contactData.fields.instagram}
               </p>
               <div className="flex gap-4">
-                <a 
-                  href={contactData.info.instagram} 
+                <a
+                  href={contactData.info.instagram}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-white hover:opacity-70 transition-opacity"
@@ -152,8 +152,8 @@ export default function ContactSection({ language }) {
                 >
                   <FaInstagram size={32} />
                 </a>
-                <a 
-                  href={contactData.info.vimeo} 
+                <a
+                  href={contactData.info.vimeo}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-white hover:opacity-70 transition-opacity"
@@ -163,7 +163,7 @@ export default function ContactSection({ language }) {
                 </a>
               </div>
             </motion.div>
-            
+
             {/* Endereço */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
@@ -177,10 +177,10 @@ export default function ContactSection({ language }) {
                 {contactData.info.address}
               </p>
             </motion.div>
-            
+
           </div>
         </motion.div>
       </div>
     </div>
   );
-}s
+}
