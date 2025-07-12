@@ -36,14 +36,25 @@ export const translations = {
         phone: 'Telefone',
         whatsapp: 'WhatsApp',
         instagram: 'Instagram',
-        address: 'Endereço'
+        address: 'Endereço',
+        producaoExecutiva: 'Produção Executiva',
+        atendimento: 'Atendimento'
       },
       info: {
-        email: 'contato@blackshadefilmes.com',
-        phone: '+55 11 9999-9999',
-        whatsapp: '+55 11 9999-9999',
-        address: 'São Paulo, Brasil',
-        instagram: '@blackshadefilmes'
+        email: 'contato@blackshade.com.br',
+        gusVargas: {
+          nome: 'Gus Vargas',
+          cel: '+55 11 94237.6027',
+          email: 'gustavo@blackshade.com.br'
+        },
+        rodrigoSivieri: {
+          nome: 'Rodrigo Sivieri',
+          cel: '+55 11 98818.5462',
+          email: 'rodrigo@blackshade.com.br'
+        },
+        address: 'São Paulo // Rio de Janeiro',
+        instagram: 'https://www.instagram.com/blackshadefilms',
+        vimeo: 'https://vimeo.com/blackshadefilms'
       }
     },
     common: {
@@ -87,14 +98,25 @@ export const translations = {
         phone: 'Phone',
         whatsapp: 'WhatsApp',
         instagram: 'Instagram',
-        address: 'Address'
+        address: 'Address',
+        producaoExecutiva: 'Executive Production',
+        atendimento: 'Service'
       },
       info: {
-        email: 'contact@blackshadefilmes.com',
-        phone: '+55 11 9999-9999',
-        whatsapp: '+55 11 9999-9999',
-        address: 'São Paulo, Brazil',
-        instagram: '@blackshadefilmes'
+        email: 'contact@blackshade.com.br',
+        gusVargas: {
+          nome: 'Gus Vargas',
+          cel: '+55 11 94237.6027',
+          email: 'gustavo@blackshade.com.br'
+        },
+        rodrigoSivieri: {
+          nome: 'Rodrigo Sivieri',
+          cel: '+55 11 98818.5462',
+          email: 'rodrigo@blackshade.com.br'
+        },
+        address: 'São Paulo // Rio de Janeiro',
+        instagram: 'https://www.instagram.com/blackshadefilms',
+        vimeo: 'https://vimeo.com/blackshadefilms'
       }
     },
     common: {
