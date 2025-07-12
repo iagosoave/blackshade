@@ -41,14 +41,14 @@ const IntroAnimation = ({ onAnimationComplete }) => {
         alt="BLACKSHADE"
         className="h-24 md:h-32"
         initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ 
-          opacity: 1, 
-          scale: 1, 
-          transition: { 
-            duration: 0.8, 
+        animate={{
+          opacity: 1,
+          scale: 1,
+          transition: {
+            duration: 0.8,
             delay: 0.3,
             ease: [0.43, 0.13, 0.23, 0.96]
-          } 
+          }
         }}
       />
     </motion.div>
@@ -61,11 +61,11 @@ export default function App() {
   const [activeModal, setActiveModal] = useState(null);
   const [language, setLanguage] = useState('pt');
   const [isVideoOpen, setIsVideoOpen] = useState(false);
-  const [showIntro, setShowIntro] = useState(true);
-  
+  const [showIntro, setShowIntro] = useState(true); // CORRIGIDO: Usando useState(true)
+
   // Refs
   const videoRef = useRef(null);
-  
+
   // Dados do Contentful (se necessário)
   const { data: homepageData } = useContentful('homepage');
 
@@ -85,7 +85,7 @@ export default function App() {
           }, { once: true });
         });
       };
-      
+
       if (videoElement.readyState >= 3) {
         playVideo();
       } else {
@@ -98,16 +98,14 @@ export default function App() {
   // Funções de callback
   const handleMenuClick = useCallback((item) => {
     const t = translations[language];
-    
-    // Mapeia os itens do menu para os modais
+
     let targetModal = null;
     if (item === t.menu.about) targetModal = 'about';
     else if (item === t.menu.directors) targetModal = 'directors';
     else if (item === t.menu.cosmos) targetModal = 'cosmos';
     else if (item === t.menu.daydream) targetModal = 'daydream';
     else if (item === t.menu.contact) targetModal = 'contact';
-    
-    // Se o modal já está ativo, fecha e reabre para resetar o estado
+
     if (activeModal === targetModal) {
       setActiveModal(null);
       setTimeout(() => setActiveModal(targetModal), 10);
@@ -119,7 +117,7 @@ export default function App() {
   const handleCloseModal = useCallback(() => {
     setActiveModal(null);
   }, []);
-  
+
   const handleLogoClick = useCallback(() => {
     setActiveModal(null);
     setIsVideoOpen(false);
@@ -138,8 +136,8 @@ export default function App() {
           playsInline={true}
           controls={false}
           preload="auto"
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ pointerEvents: 'none' }}
+          className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
+          style={{ opacity: activeModal === 'contact' ? 0.2 : 1, pointerEvents: 'none' }} // Opacidade definida por estilo inline
         >
           <source src={backgroundVideo} type="video/mp4" />
           Seu navegador não suporta a tag de vídeo.
@@ -163,17 +161,17 @@ export default function App() {
         >
           {/* Logo */}
           <Logo onClick={handleLogoClick} />
-          
+
           {/* Language Switcher */}
           {!activeModal && !isVideoOpen && (
             <LanguageSwitcher language={language} onChange={setLanguage} />
           )}
-          
+
           {/* Menu */}
           {!isVideoOpen && (
-            <Menu 
-              onItemClick={handleMenuClick} 
-              language={language} 
+            <Menu
+              onItemClick={handleMenuClick}
+              language={language}
               activeModal={activeModal}
             />
           )}
@@ -186,28 +184,28 @@ export default function App() {
                 <AboutSection language={language} />
               </Modal>
             )}
-            
+
             {/* Diretores */}
             {activeModal === 'directors' && (
               <Modal isOpen onClose={handleCloseModal} direction="right">
                 <DirectorsSection language={language} onVideoOpen={setIsVideoOpen} />
               </Modal>
             )}
-            
+
             {/* Cosmos/VFX */}
             {activeModal === 'cosmos' && (
               <Modal isOpen onClose={handleCloseModal} direction="left">
                 <CosmosSection language={language} />
               </Modal>
             )}
-            
+
             {/* Daydream/IA */}
             {activeModal === 'daydream' && (
               <Modal isOpen onClose={handleCloseModal} direction="right">
                 <DaydreamSection language={language} onVideoOpen={setIsVideoOpen} />
               </Modal>
             )}
-            
+
             {/* Contato */}
             {activeModal === 'contact' && (
               <Modal isOpen onClose={handleCloseModal} direction="left">
