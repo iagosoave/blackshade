@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import VideoPopup from './VideoPopup';
 import { translations } from '../config/translations';
+import backgroundBioImage from './backgroundbio.png'; // Importe a imagem
 
 export default function DirectorPortfolio({ director, onBack, loading, onVideoOpen, language = 'pt' }) {
   const [selectedVideoUrl, setSelectedVideoUrl] = useState(null);
@@ -41,9 +42,20 @@ export default function DirectorPortfolio({ director, onBack, loading, onVideoOp
 
         {/* Informações do Diretor - Biografia e Foto */}
         {director && (
-          <div className="flex flex-col md:flex-row items-center md:items-start p-8 mt-20 md:mt-0">
+          <div
+            className="flex flex-col md:flex-row items-center md:items-start p-8 mt-20 md:mt-0 relative"
+            style={{
+              backgroundImage: `url(${backgroundBioImage})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+            }}
+          >
+            {/* Overlay para escurecer o fundo e melhorar a legibilidade */}
+            <div className="absolute inset-0 bg-black opacity-70 z-0"></div>
+
             <motion.div
-              className="w-full md:w-1/3 flex justify-center mb-6 md:mb-0"
+              className="w-full md:w-1/3 flex justify-center mb-6 md:mb-0 z-10"
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
@@ -56,7 +68,7 @@ export default function DirectorPortfolio({ director, onBack, loading, onVideoOp
               />
             </motion.div>
             <motion.div
-              className="w-full md:w-2/3 text-white text-center md:text-left"
+              className="w-full md:w-2/3 text-white text-center md:text-left z-10"
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.5 }}
