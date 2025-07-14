@@ -23,7 +23,7 @@ export default function DirectorPortfolio({ director, onBack, loading, onVideoOp
     <>
       <div className="min-h-screen">
         {/* Barra de ações no topo direito */}
-        <motion.div 
+        <motion.div
           className="fixed top-6 right-16 z-50"
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -38,7 +38,43 @@ export default function DirectorPortfolio({ director, onBack, loading, onVideoOp
             {t.directors.back.replace('← ', '')}
           </button>
         </motion.div>
-        
+
+        {/* Informações do Diretor - Biografia e Foto */}
+        {director && (
+          <div className="flex flex-col md:flex-row items-center md:items-start p-8 mt-20 md:mt-0">
+            <motion.div
+              className="w-full md:w-1/3 flex justify-center mb-6 md:mb-0"
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+            >
+              {/* Placeholder para a imagem do diretor */}
+              <img
+                src="https://via.placeholder.com/200" // Substitua por uma URL de imagem real do diretor
+                alt={director.name}
+                className="rounded-full w-40 h-40 object-cover border-2 border-white"
+              />
+            </motion.div>
+            <motion.div
+              className="w-full md:w-2/3 text-white text-center md:text-left"
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+            >
+              <h2
+                className="text-4xl md:text-5xl mb-4"
+                style={{ fontFamily: 'Impact, Haettenschweiler, Arial Black, sans-serif' }}
+              >
+                {director.name}
+              </h2>
+              {/* Placeholder para a biografia do diretor */}
+              <p className="text-base md:text-lg opacity-80 leading-relaxed">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+              </p>
+            </motion.div>
+          </div>
+        )}
+
         <div>
           {loading ? (
             <div className="flex items-center justify-center h-[60vh]">
@@ -58,14 +94,14 @@ export default function DirectorPortfolio({ director, onBack, loading, onVideoOp
                     onClick={() => handleVideoClick(item)}
                   >
                     <div className="absolute inset-0">
-                      <img 
-                        src={item.thumbnail} 
+                      <img
+                        src={item.thumbnail}
                         alt={item.title}
                         className="w-full h-full object-cover"
                       />
                       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/30 to-black/60" />
                     </div>
-                    
+
                    <div className="absolute inset-0 flex items-center justify-center p-4">
     <h3 className="text-white text-xl md:text-2xl tracking-wider text-center"
         style={{ fontFamily: 'Impact, Haettenschweiler, Arial Black, sans-serif' }}>
@@ -85,8 +121,8 @@ export default function DirectorPortfolio({ director, onBack, loading, onVideoOp
       </div>
 
       {/* Video Popup */}
-      <VideoPopup 
-        videoUrl={selectedVideoUrl} 
+      <VideoPopup
+        videoUrl={selectedVideoUrl}
         onClose={handleCloseVideo}
       />
     </>
