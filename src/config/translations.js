@@ -32,13 +32,13 @@ export const translations = {
     contact: {
       title: 'CONTATO',
       fields: {
-        email: 'Email',
-        phone: 'Telefone',
-        whatsapp: 'WhatsApp',
-        instagram: 'Instagram',
-        address: 'Endereço',
-        producaoExecutiva: 'Produção Executiva',
-        atendimento: 'Atendimento'
+        email: 'EMAIL',
+        phone: 'TELEFONE',
+        whatsapp: 'WHATSAPP',
+        socialMedia: 'REDE SOCIAL',
+        address: 'ENDEREÇO',
+        executiveProduction: 'PRODUÇÃO EXECUTIVA',
+        service: 'ATENDIMENTO'
       },
       info: {
         email: 'contato@blackshade.com.br',
@@ -94,13 +94,13 @@ export const translations = {
     contact: {
       title: 'CONTACT',
       fields: {
-        email: 'Email',
-        phone: 'Phone',
-        whatsapp: 'WhatsApp',
-        instagram: 'Instagram',
-        address: 'Address',
-        producaoExecutiva: 'Executive Production',
-        atendimento: 'Service'
+        email: 'EMAIL',
+        phone: 'PHONE',
+        whatsapp: 'WHATSAPP',
+        socialMedia: 'SOCIAL MEDIA',
+        address: 'ADDRESS',
+        executiveProduction: 'EXECUTIVE PRODUCTION',
+        service: 'SERVICE'
       },
       info: {
         email: 'contato@blackshade.com.br',
