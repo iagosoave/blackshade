@@ -3,7 +3,7 @@ import DirectorsList from '../components/DirectorsList';
 import DirectorPortfolio from '../components/DirectorPortfolio';
 import useContentful from '../hocks/useContentful';
 
-export default function DirectorsSection({ language, onVideoOpen }) {
+export default function DirectorsSection({ language, onVideoOpen, onDirectorSelect }) {
   const [selectedDirector, setSelectedDirector] = useState(null);
 
   const directors = [
@@ -23,17 +23,33 @@ export default function DirectorsSection({ language, onVideoOpen }) {
     portfolio: portfolioData || []
   } : null;
 
+  // Função para lidar com a seleção de um diretor
+  const handleSelectDirector = (director) => {
+    setSelectedDirector(director);
+    if (onDirectorSelect) {
+      onDirectorSelect(true); // Notifica o App que entrou no portfolio
+    }
+  };
+
+  // Função para lidar com o botão voltar
+  const handleBack = () => {
+    setSelectedDirector(null);
+    if (onDirectorSelect) {
+      onDirectorSelect(false); // Notifica o App que saiu do portfolio
+    }
+  };
+
   return (
     <>
       {!selectedDirector ? (
         <DirectorsList
           directors={directors}
-          onSelectDirector={setSelectedDirector}
+          onSelectDirector={handleSelectDirector}
         />
       ) : (
         <DirectorPortfolio
           director={directorWithPortfolio}
-          onBack={() => setSelectedDirector(null)}
+          onBack={handleBack}
           loading={loading}
           onVideoOpen={onVideoOpen}
           language={language}

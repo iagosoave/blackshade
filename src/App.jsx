@@ -61,7 +61,8 @@ export default function App() {
   const [activeModal, setActiveModal] = useState(null);
   const [language, setLanguage] = useState('pt');
   const [isVideoOpen, setIsVideoOpen] = useState(false);
-  const [showIntro, setShowIntro] = useState(true); // CORRIGIDO: Usando useState(true)
+  const [showIntro, setShowIntro] = useState(true);
+  const [isInDirectorPortfolio, setIsInDirectorPortfolio] = useState(false); // Novo estado para controlar portfolio
 
   // Refs
   const videoRef = useRef(null);
@@ -116,11 +117,13 @@ export default function App() {
 
   const handleCloseModal = useCallback(() => {
     setActiveModal(null);
+    setIsInDirectorPortfolio(false); // Reseta o estado ao fechar qualquer modal
   }, []);
 
   const handleLogoClick = useCallback(() => {
     setActiveModal(null);
     setIsVideoOpen(false);
+    setIsInDirectorPortfolio(false); // Reseta o estado ao clicar no logo
   }, []);
 
   // Renderização
@@ -137,7 +140,7 @@ export default function App() {
           controls={false}
           preload="auto"
           className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
-          style={{ opacity: activeModal === 'contact' ? 0.2 : 1, pointerEvents: 'none' }} // Opacidade definida por estilo inline
+          style={{ opacity: activeModal === 'contact' ? 0.2 : 1, pointerEvents: 'none' }}
         >
           <source src={backgroundVideo} type="video/mp4" />
           Seu navegador não suporta a tag de vídeo.
@@ -159,16 +162,16 @@ export default function App() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
-          {/* Logo */}
-          <Logo onClick={handleLogoClick} />
+          {/* Logo - Esconde quando estiver no portfolio de diretores */}
+          {!isInDirectorPortfolio && <Logo onClick={handleLogoClick} />}
 
-          {/* Language Switcher */}
-          {!activeModal && !isVideoOpen && (
+          {/* Language Switcher - Esconde quando estiver no portfolio de diretores */}
+          {!activeModal && !isVideoOpen && !isInDirectorPortfolio && (
             <LanguageSwitcher language={language} onChange={setLanguage} />
           )}
 
-          {/* Menu */}
-          {!isVideoOpen && (
+          {/* Menu - Esconde quando estiver no portfolio de diretores */}
+          {!isVideoOpen && !isInDirectorPortfolio && (
             <Menu
               onItemClick={handleMenuClick}
               language={language}
@@ -188,7 +191,11 @@ export default function App() {
             {/* Diretores */}
             {activeModal === 'directors' && (
               <Modal isOpen onClose={handleCloseModal} direction="right">
-                <DirectorsSection language={language} onVideoOpen={setIsVideoOpen} />
+                <DirectorsSection 
+                  language={language} 
+                  onVideoOpen={setIsVideoOpen} 
+                  onDirectorSelect={setIsInDirectorPortfolio}
+                />
               </Modal>
             )}
 

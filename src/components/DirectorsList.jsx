@@ -18,6 +18,17 @@ export default function DirectorsList({ directors, onSelectDirector }) {
     visible: { opacity: 1, x: 0 },
   };
 
+  // Função para dividir diretores em colunas
+  const splitIntoColumns = (directors, numColumns) => {
+    const columns = Array.from({ length: numColumns }, () => []);
+    directors.forEach((director, index) => {
+      columns[index % numColumns].push(director);
+    });
+    return columns;
+  };
+
+  const columns = splitIntoColumns(directors, 2); // 2 colunas no desktop
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4 md:p-8 relative">
       {/* Camada de fundo com imagem */}
@@ -37,7 +48,7 @@ export default function DirectorsList({ directors, onSelectDirector }) {
 
       {/* Conteúdo dos diretores */}
       <motion.div
-        className="w-full max-w-4xl relative z-20 overflow-y-auto p-4 pb-20"
+        className="w-full max-w-6xl relative z-20 overflow-y-auto p-4 pb-20"
         initial="hidden"
         animate="visible"
         variants={containerVariants}
@@ -54,27 +65,53 @@ export default function DirectorsList({ directors, onSelectDirector }) {
             }
           `}
         </style>
-        {directors.map((director, index) => (
-          <motion.div
-            key={director.id}
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.15, duration: 0.6 }}
-          >
-            <h2
-              // AQUI ESTÃO AS MUDANÇAS:
-              // text-4xl para mobile (telas pequenas)
-              // md:text-8xl para desktop (telas médias e maiores)
-              // mb-4 para mobile (margem inferior)
-              // md:mb-12 para desktop (margem inferior)
-              className="text-white text-4xl md:text-8xl mb-4 md:mb-12 cursor-pointer hover:translate-x-4 transition-transform leading-tight" // leading-tight para ajuste de linha
-              style={{ fontFamily: 'Impact, Haettenschweiler, Arial Black, sans-serif' }}
-              onClick={() => onSelectDirector(director)}
+
+        {/* Layout Mobile - Lista vertical */}
+        <div className="block md:hidden">
+          {directors.map((director, index) => (
+            <motion.div
+              key={director.id}
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.15, duration: 0.6 }}
             >
-              {director.name}
-            </h2>
-          </motion.div>
-        ))}
+              <h2
+                className="text-white text-4xl mb-4 cursor-pointer hover:translate-x-4 transition-transform leading-tight"
+                style={{ fontFamily: 'Impact, Haettenschweiler, Arial Black, sans-serif' }}
+                onClick={() => onSelectDirector(director)}
+              >
+                {director.name}
+              </h2>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Layout Desktop - Grid de 2 colunas */}
+        <div className="hidden md:grid md:grid-cols-2 md:gap-16 md:items-start">
+          {columns.map((column, columnIndex) => (
+            <div key={columnIndex} className="flex flex-col space-y-8">
+              {column.map((director, index) => (
+                <motion.div
+                  key={director.id}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ 
+                    delay: (columnIndex * 0.1) + (index * 0.15), 
+                    duration: 0.6 
+                  }}
+                >
+                  <h2
+                    className="text-white text-3xl lg:text-4xl xl:text-5xl cursor-pointer hover:scale-105 transition-transform leading-tight text-center"
+                    style={{ fontFamily: 'Impact, Haettenschweiler, Arial Black, sans-serif' }}
+                    onClick={() => onSelectDirector(director)}
+                  >
+                    {director.name}
+                  </h2>
+                </motion.div>
+              ))}
+            </div>
+          ))}
+        </div>
       </motion.div>
     </div>
   );
