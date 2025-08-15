@@ -10,8 +10,7 @@ export default function DirectorsSection({ language, onVideoOpen, onDirectorSele
     { id: 'alice-demier', name: 'Alice Demier', bannerImage: '' },
     { id: 'gustavo-vargas', name: 'Gus Vargas', bannerImage: '' },
     { id: 'rafa-rocha', name: 'Rafa Rocha', bannerImage: '' },
-    { id: 'renata-massetti', name: 'Renata Massetti', bannerImage: '' },
-    { id: 'wolvz', name: 'Wolvz Duo', bannerImage: '' }
+    { id: 'renata-massetti', name: 'Renata Massetti', bannerImage: '' }
   ];
 
   const { data: portfolioData, loading } = useContentful(
@@ -35,7 +34,7 @@ export default function DirectorsSection({ language, onVideoOpen, onDirectorSele
   const handleBack = () => {
     setSelectedDirector(null);
     if (onDirectorSelect) {
-      onDirectorSelect(false); // Notifica o App que saiu do portfolio
+      onDirectorSelect(false); // Notifica o App que saiu no portfolio
     }
   };
 

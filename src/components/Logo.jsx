@@ -5,7 +5,7 @@ import logo from './logo.png';
 export default function Logo({ onClick }) {
   return (
     <motion.div
-      className="fixed top-8 left-8 z-50 cursor-pointer"
+      className="fixed top-4 left-8 z-50 cursor-pointer"
       initial={{ opacity: 0, x: -50 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.8, ease: "easeOut" }}

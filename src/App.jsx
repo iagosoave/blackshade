@@ -10,9 +10,11 @@ import Modal from './components/Modal';
 // Ganchos customizados
 import useContentful from './hocks/useContentful';
 
-// Imagens e Vídeo
+// Imagens e Vídeos
 import logo from './logo.png';
-import backgroundVideo from './video.mp4';
+import backgroundVideo1 from './01.mp4';
+import backgroundVideo2 from './02.mp4';
+import backgroundVideo3 from './03.mp4';
 
 // Traduções
 import { translations } from './config/translations';
@@ -21,7 +23,6 @@ import { translations } from './config/translations';
 const AboutSection = lazy(() => import('./sections/AboutSection'));
 const DirectorsSection = lazy(() => import('./sections/DirectorsSection'));
 const CosmosSection = lazy(() => import('./sections/CosmosSection'));
-const DaydreamSection = lazy(() => import('./sections/DaydreamSection'));
 const ContactSection = lazy(() => import('./sections/ContactSection'));
 
 // Componente de Animação de Introdução
@@ -62,21 +63,31 @@ export default function App() {
   const [language, setLanguage] = useState('pt');
   const [isVideoOpen, setIsVideoOpen] = useState(false);
   const [showIntro, setShowIntro] = useState(true);
-  const [isInDirectorPortfolio, setIsInDirectorPortfolio] = useState(false); // Novo estado para controlar portfolio
+  const [isInDirectorPortfolio, setIsInDirectorPortfolio] = useState(false);
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
 
-  // Refs
+  // Array de vídeos
+  const videos = [backgroundVideo1, backgroundVideo2, backgroundVideo3];
+
+  // Ref para o vídeo atual
   const videoRef = useRef(null);
 
   // Dados do Contentful (se necessário)
   const { data: homepageData } = useContentful('homepage');
 
-  // Efeito para garantir o autoplay do vídeo de fundo
+  // Função para avançar para o próximo vídeo
+  const goToNextVideo = useCallback(() => {
+    setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % videos.length);
+  }, [videos.length]);
+
+  // Efeito para configurar o vídeo atual
   useEffect(() => {
     const videoElement = videoRef.current;
 
     if (videoElement) {
       videoElement.muted = true;
       videoElement.playsInline = true;
+      videoElement.loop = false; // Desabilita loop para detectar o fim
 
       const playVideo = () => {
         videoElement.play().catch(err => {
@@ -87,14 +98,26 @@ export default function App() {
         });
       };
 
+      // Detecta quando o vídeo termina e avança para o próximo
+      const handleVideoEnd = () => {
+        goToNextVideo();
+      };
+
+      videoElement.addEventListener('ended', handleVideoEnd);
+
       if (videoElement.readyState >= 3) {
         playVideo();
       } else {
         videoElement.addEventListener('loadeddata', playVideo);
-        return () => videoElement.removeEventListener('loadeddata', playVideo);
       }
+
+      // Cleanup
+      return () => {
+        videoElement.removeEventListener('ended', handleVideoEnd);
+        videoElement.removeEventListener('loadeddata', playVideo);
+      };
     }
-  }, []);
+  }, [currentVideoIndex, goToNextVideo]);
 
   // Funções de callback
   const handleMenuClick = useCallback((item) => {
@@ -104,7 +127,6 @@ export default function App() {
     if (item === t.menu.about) targetModal = 'about';
     else if (item === t.menu.directors) targetModal = 'directors';
     else if (item === t.menu.cosmos) targetModal = 'cosmos';
-    else if (item === t.menu.daydream) targetModal = 'daydream';
     else if (item === t.menu.contact) targetModal = 'contact';
 
     if (activeModal === targetModal) {
@@ -117,35 +139,52 @@ export default function App() {
 
   const handleCloseModal = useCallback(() => {
     setActiveModal(null);
-    setIsInDirectorPortfolio(false); // Reseta o estado ao fechar qualquer modal
+    setIsInDirectorPortfolio(false);
   }, []);
 
   const handleLogoClick = useCallback(() => {
     setActiveModal(null);
     setIsVideoOpen(false);
-    setIsInDirectorPortfolio(false); // Reseta o estado ao clicar no logo
+    setIsInDirectorPortfolio(false);
   }, []);
 
   // Renderização
   return (
     <div className="fixed inset-0 overflow-hidden bg-black">
-      {/* Vídeo de Background */}
+      {/* Vídeos de Background - Todos renderizados simultaneamente */}
       <div className="absolute inset-0 w-full h-full">
-        <video
-          ref={videoRef}
-          autoPlay={true}
-          loop={true}
-          muted={true}
-          playsInline={true}
-          controls={false}
-          preload="auto"
-          className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
-          style={{ opacity: activeModal === 'contact' ? 0.2 : 1, pointerEvents: 'none' }}
-        >
-          <source src={backgroundVideo} type="video/mp4" />
-          Seu navegador não suporta a tag de vídeo.
-        </video>
+        {videos.map((video, index) => (
+          <video
+            key={`video-${index}`}
+            ref={index === currentVideoIndex ? videoRef : null}
+            autoPlay={index === currentVideoIndex}
+            muted={true}
+            playsInline={true}
+            controls={false}
+            preload="auto"
+            className="absolute"
+            style={{ 
+              opacity: index === currentVideoIndex ? (activeModal === 'contact' ? 0.2 : 1) : 0,
+              pointerEvents: 'none',
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%) scale(1.1)',
+              minWidth: '100vw',
+              minHeight: '100vh',
+              width: 'auto',
+              height: 'auto',
+              objectFit: 'cover',
+              zIndex: index === currentVideoIndex ? 2 : 1
+            }}
+          >
+            <source src={video} type="video/mp4" />
+            Seu navegador não suporta a tag de vídeo.
+          </video>
+        ))}
       </div>
+
+
 
       {/* Animação de Introdução */}
       <AnimatePresence>
@@ -203,13 +242,6 @@ export default function App() {
             {activeModal === 'cosmos' && (
               <Modal isOpen onClose={handleCloseModal} direction="left">
                 <CosmosSection language={language} />
-              </Modal>
-            )}
-
-            {/* Daydream/IA */}
-            {activeModal === 'daydream' && (
-              <Modal isOpen onClose={handleCloseModal} direction="right">
-                <DaydreamSection language={language} onVideoOpen={setIsVideoOpen} />
               </Modal>
             )}
 

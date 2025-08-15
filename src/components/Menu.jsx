@@ -10,7 +10,6 @@ export default function Menu({ onItemClick, language, activeModal }) {
     { label: t.menu.about, key: 'about' },
     { label: t.menu.directors, key: 'directors' },
     { label: t.menu.cosmos, key: 'cosmos' },
-    { label: t.menu.daydream, key: 'daydream' },
     { label: t.menu.contact, key: 'contact' }
   ];
 

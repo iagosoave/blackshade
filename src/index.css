@@ -1,12 +1,41 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 @import 'tailwindcss';
 
 /* index.css */
 body {
   font-family: 'Poppins', sans-serif;
+  font-weight: 700; /* Bold */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Forçar a fonte Poppins em TODOS os elementos do site */
+/* Forçar a fonte Poppins Bold em TODOS os elementos do site */
 * {
   font-family: 'Poppins', sans-serif !important;
+  font-weight: 700 !important; /* Bold */
+}
+
+/* Classes auxiliares para variações se necessário */
+.text-normal {
+  font-weight: 400 !important; /* Normal */
+}
+
+.text-medium {
+  font-weight: 500 !important; /* Medium */
+}
+
+.text-semibold {
+  font-weight: 600 !important; /* Semi-bold */
+}
+
+.text-bold {
+  font-weight: 700 !important; /* Bold padrão */
+}
+
+.text-extrabold {
+  font-weight: 800 !important; /* Extra Bold */
+}
+
+.text-black {
+  font-weight: 900 !important; /* Black/Heavy */
 }
