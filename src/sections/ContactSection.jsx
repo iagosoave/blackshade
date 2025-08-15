@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FaInstagram, FaVimeoV, FaWhatsapp } from 'react-icons/fa';
 import { translations } from '../config/translations';
-import backgroundVideo from '../video.mp4';
+import backgroundVideo from '../02.mp4';
 
 export default function ContactSection({ language }) {
   const videoRef = useRef(null);
