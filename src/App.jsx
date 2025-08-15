@@ -1,29 +1,25 @@
-import React, { useState, useEffect, useCallback, lazy, Suspense, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Componentes
 import Logo from './components/Logo';
 import Menu from './components/Menu';
 import LanguageSwitcher from './components/LanguageSwitcher';
-import Modal from './components/Modal';
 
-// Ganchos customizados
-import useContentful from './hocks/useContentful';
+// Páginas
+import HomePage from './pages/HomePage';
+import AboutPage from './pages/AboutPage';
+import DirectorsPage from './pages/DirectorsPage';
+import DirectorDetailPage from './pages/DirectorDetailPage';
+import CosmosPage from './pages/CosmosPage';
+import ContactPage from './pages/ContactPage';
 
-// Imagens e Vídeos
+// Imagens
 import logo from './logo.png';
-import backgroundVideo1 from './01.mp4';
-import backgroundVideo2 from './02.mp4';
-import backgroundVideo3 from './03.mp4';
 
 // Traduções
 import { translations } from './config/translations';
-
-// Carregamento lazy das seções
-const AboutSection = lazy(() => import('./sections/AboutSection'));
-const DirectorsSection = lazy(() => import('./sections/DirectorsSection'));
-const CosmosSection = lazy(() => import('./sections/CosmosSection'));
-const ContactSection = lazy(() => import('./sections/ContactSection'));
 
 // Componente de Animação de Introdução
 const IntroAnimation = ({ onAnimationComplete }) => {
@@ -56,136 +52,42 @@ const IntroAnimation = ({ onAnimationComplete }) => {
   );
 };
 
-// Componente Principal da Aplicação
-export default function App() {
-  // Estados
-  const [activeModal, setActiveModal] = useState(null);
+// Componente de Layout Principal
+function AppLayout({ children }) {
   const [language, setLanguage] = useState('pt');
-  const [isVideoOpen, setIsVideoOpen] = useState(false);
   const [showIntro, setShowIntro] = useState(true);
-  const [isInDirectorPortfolio, setIsInDirectorPortfolio] = useState(false);
-  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  // Array de vídeos
-  const videos = [backgroundVideo1, backgroundVideo2, backgroundVideo3];
-
-  // Ref para o vídeo atual
-  const videoRef = useRef(null);
-
-  // Dados do Contentful (se necessário)
-  const { data: homepageData } = useContentful('homepage');
-
-  // Função para avançar para o próximo vídeo
-  const goToNextVideo = useCallback(() => {
-    setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % videos.length);
-  }, [videos.length]);
-
-  // Efeito para configurar o vídeo atual
-  useEffect(() => {
-    const videoElement = videoRef.current;
-
-    if (videoElement) {
-      videoElement.muted = true;
-      videoElement.playsInline = true;
-      videoElement.loop = false; // Desabilita loop para detectar o fim
-
-      const playVideo = () => {
-        videoElement.play().catch(err => {
-          console.warn('Erro ao tentar reproduzir o vídeo automaticamente:', err);
-          document.addEventListener('click', () => {
-            videoElement.play().catch(e => console.error('Erro ao reproduzir vídeo após clique:', e));
-          }, { once: true });
-        });
-      };
-
-      // Detecta quando o vídeo termina e avança para o próximo
-      const handleVideoEnd = () => {
-        goToNextVideo();
-      };
-
-      videoElement.addEventListener('ended', handleVideoEnd);
-
-      if (videoElement.readyState >= 3) {
-        playVideo();
-      } else {
-        videoElement.addEventListener('loadeddata', playVideo);
-      }
-
-      // Cleanup
-      return () => {
-        videoElement.removeEventListener('ended', handleVideoEnd);
-        videoElement.removeEventListener('loadeddata', playVideo);
-      };
-    }
-  }, [currentVideoIndex, goToNextVideo]);
-
-  // Funções de callback
-  const handleMenuClick = useCallback((item) => {
-    const t = translations[language];
-
-    let targetModal = null;
-    if (item === t.menu.about) targetModal = 'about';
-    else if (item === t.menu.directors) targetModal = 'directors';
-    else if (item === t.menu.cosmos) targetModal = 'cosmos';
-    else if (item === t.menu.contact) targetModal = 'contact';
-
-    if (activeModal === targetModal) {
-      setActiveModal(null);
-      setTimeout(() => setActiveModal(targetModal), 10);
-    } else {
-      setActiveModal(targetModal);
-    }
-  }, [language, activeModal]);
-
-  const handleCloseModal = useCallback(() => {
-    setActiveModal(null);
-    setIsInDirectorPortfolio(false);
-  }, []);
+  // Verifica se está em uma página de detalhe de diretor
+  const isDirectorDetail = location.pathname.startsWith('/diretores/');
+  const isHomePage = location.pathname === '/';
 
   const handleLogoClick = useCallback(() => {
-    setActiveModal(null);
-    setIsVideoOpen(false);
-    setIsInDirectorPortfolio(false);
-  }, []);
+    navigate('/');
+  }, [navigate]);
 
-  // Renderização
+  const handleMenuClick = useCallback((item) => {
+    const t = translations[language];
+    
+    if (item === t.menu.about) navigate('/sobre');
+    else if (item === t.menu.directors) navigate('/diretores');
+    else if (item === t.menu.cosmos) navigate('/cosmos');
+    else if (item === t.menu.contact) navigate('/contato');
+  }, [language, navigate]);
+
+  // Determina o modal ativo baseado na rota
+  const getActiveModal = () => {
+    const path = location.pathname;
+    if (path === '/sobre') return 'about';
+    if (path.startsWith('/diretores')) return 'directors';
+    if (path === '/cosmos') return 'cosmos';
+    if (path === '/contato') return 'contact';
+    return null;
+  };
+
   return (
-    <div className="fixed inset-0 overflow-hidden bg-black">
-      {/* Vídeos de Background - Todos renderizados simultaneamente */}
-      <div className="absolute inset-0 w-full h-full">
-        {videos.map((video, index) => (
-          <video
-            key={`video-${index}`}
-            ref={index === currentVideoIndex ? videoRef : null}
-            autoPlay={index === currentVideoIndex}
-            muted={true}
-            playsInline={true}
-            controls={false}
-            preload="auto"
-            className="absolute"
-            style={{ 
-              opacity: index === currentVideoIndex ? (activeModal === 'contact' ? 0.2 : 1) : 0,
-              pointerEvents: 'none',
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%) scale(1.1)',
-              minWidth: '100vw',
-              minHeight: '100vh',
-              width: 'auto',
-              height: 'auto',
-              objectFit: 'cover',
-              zIndex: index === currentVideoIndex ? 2 : 1
-            }}
-          >
-            <source src={video} type="video/mp4" />
-            Seu navegador não suporta a tag de vídeo.
-          </video>
-        ))}
-      </div>
-
-
-
+    <>
       {/* Animação de Introdução */}
       <AnimatePresence>
         {showIntro && (
@@ -201,59 +103,55 @@ export default function App() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
-          {/* Logo - Esconde quando estiver no portfolio de diretores */}
-          {!isInDirectorPortfolio && <Logo onClick={handleLogoClick} />}
+          {/* Logo - Sempre visível exceto no portfolio de diretores */}
+          {!isDirectorDetail && <Logo onClick={handleLogoClick} />}
 
-          {/* Language Switcher - Esconde quando estiver no portfolio de diretores */}
-          {!activeModal && !isVideoOpen && !isInDirectorPortfolio && (
+          {/* Language Switcher - Apenas na home */}
+          {isHomePage && (
             <LanguageSwitcher language={language} onChange={setLanguage} />
           )}
 
-          {/* Menu - Esconde quando estiver no portfolio de diretores */}
-          {!isVideoOpen && !isInDirectorPortfolio && (
+          {/* Menu - Esconde apenas no portfolio de diretores */}
+          {!isDirectorDetail && (
             <Menu
               onItemClick={handleMenuClick}
               language={language}
-              activeModal={activeModal}
+              activeModal={getActiveModal()}
             />
           )}
 
-          {/* Modais */}
-          <Suspense fallback={null}>
-            {/* Quem Somos */}
-            {activeModal === 'about' && (
-              <Modal isOpen onClose={handleCloseModal} direction="left">
-                <AboutSection language={language} />
-              </Modal>
-            )}
-
-            {/* Diretores */}
-            {activeModal === 'directors' && (
-              <Modal isOpen onClose={handleCloseModal} direction="right">
-                <DirectorsSection 
-                  language={language} 
-                  onVideoOpen={setIsVideoOpen} 
-                  onDirectorSelect={setIsInDirectorPortfolio}
-                />
-              </Modal>
-            )}
-
-            {/* Cosmos/VFX */}
-            {activeModal === 'cosmos' && (
-              <Modal isOpen onClose={handleCloseModal} direction="left">
-                <CosmosSection language={language} />
-              </Modal>
-            )}
-
-            {/* Contato */}
-            {activeModal === 'contact' && (
-              <Modal isOpen onClose={handleCloseModal} direction="left">
-                <ContactSection language={language} />
-              </Modal>
-            )}
-          </Suspense>
+          {/* Renderiza as páginas com animação */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              {React.cloneElement(children, { language })}
+            </motion.div>
+          </AnimatePresence>
         </motion.div>
       )}
-    </div>
+    </>
+  );
+}
+
+// Componente Principal da Aplicação
+export default function App() {
+  return (
+    <Router>
+      <div className="fixed inset-0 overflow-hidden bg-black">
+        <Routes>
+          <Route path="/" element={<AppLayout><HomePage /></AppLayout>} />
+          <Route path="/sobre" element={<AppLayout><AboutPage /></AppLayout>} />
+          <Route path="/diretores" element={<AppLayout><DirectorsPage /></AppLayout>} />
+          <Route path="/diretores/:directorId" element={<AppLayout><DirectorDetailPage /></AppLayout>} />
+          <Route path="/cosmos" element={<AppLayout><CosmosPage /></AppLayout>} />
+          <Route path="/contato" element={<AppLayout><ContactPage /></AppLayout>} />
+        </Routes>
+      </div>
+    </Router>
   );
 }

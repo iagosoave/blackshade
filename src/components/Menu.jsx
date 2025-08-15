@@ -1,20 +1,22 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { translations } from '../config/translations';
 
-export default function Menu({ onItemClick, language, activeModal }) {
+export default function Menu({ language, activeModal }) {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
   const t = translations[language] || translations.pt;
 
   const menuItems = [
-    { label: t.menu.about, key: 'about' },
-    { label: t.menu.directors, key: 'directors' },
-    { label: t.menu.cosmos, key: 'cosmos' },
-    { label: t.menu.contact, key: 'contact' }
+    { label: t.menu.about, key: 'about', path: '/sobre' },
+    { label: t.menu.directors, key: 'directors', path: '/diretores' },
+    { label: t.menu.cosmos, key: 'cosmos', path: '/cosmos' },
+    { label: t.menu.contact, key: 'contact', path: '/contato' }
   ];
 
   const handleItemClick = (item) => {
-    onItemClick(item.label);
+    navigate(item.path);
     setIsOpen(false);
   };
 
@@ -121,7 +123,7 @@ export default function Menu({ onItemClick, language, activeModal }) {
                 <button
                   className="text-white text-sm tracking-widest hover:opacity-70 transition-opacity pb-1"
                   style={{ fontFamily: 'Impact, Haettenschweiler, Arial Black, sans-serif' }}
-                  onClick={() => onItemClick(item.label)}
+                  onClick={() => handleItemClick(item)}
                 >
                   {item.label}
                 </button>
