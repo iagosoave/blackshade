@@ -1,8 +1,7 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import useContentful from '../hooks/useContentful';
 
-// Vídeos
+// Vídeos - importe apenas os que você realmente tem
 import backgroundVideo1 from '../01.mp4';
 import backgroundVideo2 from '../02.mp4';
 import backgroundVideo3 from '../03.mp4';
@@ -15,7 +14,7 @@ import backgroundVideo8 from '../08.mp4';
 export default function HomePage() {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const videoRef = useRef(null);
-  const nextVideoRef = useRef(null);
+  const [isVideoReady, setIsVideoReady] = useState(false);
    
   // Array de vídeos
   const videos = [
@@ -28,59 +27,57 @@ export default function HomePage() {
     backgroundVideo7,
     backgroundVideo8
   ];
-   
-  // Dados do Contentful (se necessário)
-  const { data: homepageData } = useContentful('homepage');
 
-  // Função otimizada para trocar vídeos
-  const handleVideoEnd = useCallback(() => {
-    setCurrentVideoIndex((prev) => (prev + 1) % videos.length);
-  }, [videos.length]);
+  // Função para trocar para o próximo vídeo
+  const goToNextVideo = () => {
+    setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % videos.length);
+  };
 
-  // Efeito para configurar e trocar vídeos
+  // Efeito para configurar o vídeo
   useEffect(() => {
-    const currentVideo = videoRef.current;
-    const nextIndex = (currentVideoIndex + 1) % videos.length;
+    const videoElement = videoRef.current;
     
-    if (currentVideo) {
-      // Configurações básicas
-      currentVideo.muted = true;
-      currentVideo.playsInline = true;
-      currentVideo.loop = false;
-      
-      // Play com fallback para click
-      const playVideo = () => {
-        currentVideo.play().catch(err => {
-          console.warn('Autoplay bloqueado, aguardando interação:', err);
-          const handleFirstClick = () => {
-            currentVideo.play().catch(e => console.error('Erro ao reproduzir:', e));
-            document.removeEventListener('click', handleFirstClick);
-          };
-          document.addEventListener('click', handleFirstClick, { once: true });
-        });
-      };
+    if (!videoElement) return;
 
-      // Adiciona listener para o fim do vídeo
-      currentVideo.addEventListener('ended', handleVideoEnd);
+    // Configurações básicas do vídeo
+    videoElement.muted = true;
+    videoElement.playsInline = true;
+    videoElement.preload = "auto";
 
-      // Inicia o vídeo
-      if (currentVideo.readyState >= 3) {
-        playVideo();
-      } else {
-        currentVideo.addEventListener('loadeddata', playVideo, { once: true });
+    // Quando o vídeo terminar, vai para o próximo
+    const handleVideoEnd = () => {
+      goToNextVideo();
+    };
+
+    // Quando o vídeo estiver pronto para reproduzir
+    const handleCanPlay = () => {
+      setIsVideoReady(true);
+      videoElement.play().catch(err => {
+        console.log('Autoplay bloqueado, aguardando clique do usuário');
+      });
+    };
+
+    // Adiciona os event listeners
+    videoElement.addEventListener('ended', handleVideoEnd);
+    videoElement.addEventListener('canplay', handleCanPlay);
+
+    // Cleanup
+    return () => {
+      if (videoElement) {
+        videoElement.removeEventListener('ended', handleVideoEnd);
+        videoElement.removeEventListener('canplay', handleCanPlay);
       }
+    };
+  }, [currentVideoIndex]); // Recarrega quando muda o vídeo
 
-      // Pré-carrega o próximo vídeo
-      if (nextVideoRef.current) {
-        nextVideoRef.current.src = videos[nextIndex];
-        nextVideoRef.current.load();
-      }
-
-      return () => {
-        currentVideo.removeEventListener('ended', handleVideoEnd);
-      };
+  // Função para tentar reproduzir após clique do usuário
+  const handleUserInteraction = () => {
+    if (videoRef.current && videoRef.current.paused) {
+      videoRef.current.play().catch(err => {
+        console.error('Erro ao reproduzir vídeo:', err);
+      });
     }
-  }, [currentVideoIndex, videos, handleVideoEnd]);
+  };
 
   return (
     <motion.div
@@ -89,34 +86,28 @@ export default function HomePage() {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
       className="absolute inset-0 w-full h-full"
+      onClick={handleUserInteraction} // Tenta reproduzir ao clicar
     >
-      {/* Vídeo Principal */}
+      {/* Vídeo de Background */}
       <video
         ref={videoRef}
-        key={currentVideoIndex}
-        autoPlay
+        key={`video-${currentVideoIndex}`} // Força remount ao trocar vídeo
+        className="absolute inset-0 w-full h-full object-cover"
         muted
         playsInline
-        controls={false}
         preload="auto"
-        className="absolute inset-0 w-full h-full object-cover"
-        style={{ 
-          transform: 'scale(1.1)',
-        }}
+        style={{ opacity: isVideoReady ? 1 : 0 }}
       >
         <source src={videos[currentVideoIndex]} type="video/mp4" />
-        Seu navegador não suporta a tag de vídeo.
+        Seu navegador não suporta vídeos.
       </video>
 
-      {/* Vídeo de pré-carregamento (invisível) */}
-      <video
-        ref={nextVideoRef}
-        muted
-        playsInline
-        preload="auto"
-        className="hidden"
-        aria-hidden="true"
-      />
+      {/* Loading indicator enquanto o vídeo carrega */}
+      {!isVideoReady && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black">
+          <div className="text-white text-lg animate-pulse">Carregando...</div>
+        </div>
+      )}
     </motion.div>
   );
 }

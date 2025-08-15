@@ -1,19 +1,19 @@
-import React, { useState, useCallback, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Componentes que sempre são necessários
+// Componentes
 import Logo from './components/Logo';
 import Menu from './components/Menu';
 import LanguageSwitcher from './components/LanguageSwitcher';
 
-// Lazy loading das páginas para melhor performance
-const HomePage = lazy(() => import('./pages/HomePage'));
-const AboutPage = lazy(() => import('./pages/AboutPage'));
-const DirectorsPage = lazy(() => import('./pages/DirectorsPage'));
-const DirectorDetailPage = lazy(() => import('./pages/DirectorDetailPage'));
-const CosmosPage = lazy(() => import('./pages/CosmosPage'));
-const ContactPage = lazy(() => import('./pages/ContactPage'));
+// Páginas - SEM LAZY LOADING para evitar problemas
+import HomePage from './pages/HomePage';
+import AboutPage from './pages/AboutPage';
+import DirectorsPage from './pages/DirectorsPage';
+import DirectorDetailPage from './pages/DirectorDetailPage';
+import CosmosPage from './pages/CosmosPage';
+import ContactPage from './pages/ContactPage';
 
 // Imagens
 import logo from './logo.png';
@@ -21,22 +21,9 @@ import logo from './logo.png';
 // Traduções
 import { translations } from './config/translations';
 
-// Componente de Loading
-const PageLoader = () => (
-  <div className="fixed inset-0 flex items-center justify-center bg-black">
-    <motion.div
-      animate={{ opacity: [0.5, 1, 0.5] }}
-      transition={{ duration: 1.5, repeat: Infinity }}
-      className="text-white text-lg"
-    >
-      Carregando...
-    </motion.div>
-  </div>
-);
-
 // Componente de Animação de Introdução
 const IntroAnimation = ({ onAnimationComplete }) => {
-  React.useEffect(() => {
+  useEffect(() => {
     const timer = setTimeout(onAnimationComplete, 2500);
     return () => clearTimeout(timer);
   }, [onAnimationComplete]);
@@ -133,7 +120,7 @@ function AppLayout({ children }) {
             />
           )}
 
-          {/* Renderiza as páginas com animação e Suspense para lazy loading */}
+          {/* Renderiza as páginas com animação */}
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
@@ -142,9 +129,7 @@ function AppLayout({ children }) {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <Suspense fallback={<PageLoader />}>
-                {React.cloneElement(children, { language })}
-              </Suspense>
+              {React.cloneElement(children, { language })}
             </motion.div>
           </AnimatePresence>
         </motion.div>
