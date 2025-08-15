@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import DirectorPortfolio from '../components/DirectorPortfolio';
-import useContentful from '../hocks/useContentful';
+import useContentful from '../hooks/useContentful'; // CORRIGIDO: hocks -> hooks
 
 export default function DirectorDetailPage({ language }) {
   const { directorId } = useParams();

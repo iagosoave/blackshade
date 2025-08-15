@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import useContentful from '../hocks/useContentful';
+import useContentful from '../hooks/useContentful';
 
 // Vídeos
 import backgroundVideo1 from '../01.mp4';
@@ -14,12 +14,10 @@ import backgroundVideo8 from '../08.mp4';
 
 export default function HomePage() {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
-  const [nextVideoIndex, setNextVideoIndex] = useState(1);
-  
-  // Inicializa o array de refs para todos os vídeos
-  const videoRefs = useRef([]);
+  const videoRef = useRef(null);
+  const nextVideoRef = useRef(null);
    
-  // Array de vídeos expandido para 8 vídeos
+  // Array de vídeos
   const videos = [
     backgroundVideo1, 
     backgroundVideo2, 
@@ -34,107 +32,55 @@ export default function HomePage() {
   // Dados do Contentful (se necessário)
   const { data: homepageData } = useContentful('homepage');
 
-  // Função para avançar para o próximo vídeo
-  const goToNextVideo = useCallback(() => {
-    // Troca instantânea sem delay
-    setCurrentVideoIndex(nextVideoIndex);
-    setNextVideoIndex((nextVideoIndex + 1) % videos.length);
-  }, [nextVideoIndex, videos.length]);
+  // Função otimizada para trocar vídeos
+  const handleVideoEnd = useCallback(() => {
+    setCurrentVideoIndex((prev) => (prev + 1) % videos.length);
+  }, [videos.length]);
 
-  // Efeito para configurar os vídeos
+  // Efeito para configurar e trocar vídeos
   useEffect(() => {
-    videos.forEach((_, index) => {
-      const videoElement = videoRefs.current[index];
-      
-      if (videoElement) {
-        videoElement.muted = true;
-        videoElement.playsInline = true;
-        videoElement.loop = false;
-        
-        // Pré-carrega apenas o vídeo atual e o próximo
-        if (index === currentVideoIndex || index === nextVideoIndex) {
-          videoElement.preload = "auto";
-        }
-      }
-    });
-  }, [currentVideoIndex, nextVideoIndex, videos]);
-
-  // Efeito para reproduzir o vídeo atual e preparar o próximo
-  useEffect(() => {
-    const currentVideo = videoRefs.current[currentVideoIndex];
-    const nextVideo = videoRefs.current[nextVideoIndex];
+    const currentVideo = videoRef.current;
+    const nextIndex = (currentVideoIndex + 1) % videos.length;
     
     if (currentVideo) {
-      const playCurrentVideo = () => {
+      // Configurações básicas
+      currentVideo.muted = true;
+      currentVideo.playsInline = true;
+      currentVideo.loop = false;
+      
+      // Play com fallback para click
+      const playVideo = () => {
         currentVideo.play().catch(err => {
-          console.warn('Erro ao tentar reproduzir o vídeo automaticamente:', err);
-          document.addEventListener('click', () => {
-            currentVideo.play().catch(e => console.error('Erro ao reproduzir vídeo após clique:', e));
-          }, { once: true });
+          console.warn('Autoplay bloqueado, aguardando interação:', err);
+          const handleFirstClick = () => {
+            currentVideo.play().catch(e => console.error('Erro ao reproduzir:', e));
+            document.removeEventListener('click', handleFirstClick);
+          };
+          document.addEventListener('click', handleFirstClick, { once: true });
         });
-      };
-
-      const handleVideoEnd = () => {
-        // Inicia o próximo vídeo imediatamente antes da troca
-        if (nextVideo) {
-          nextVideo.currentTime = 0;
-          nextVideo.play().catch(err => console.error('Erro ao iniciar próximo vídeo:', err));
-        }
-        
-        // Troca instantânea
-        goToNextVideo();
       };
 
       // Adiciona listener para o fim do vídeo
       currentVideo.addEventListener('ended', handleVideoEnd);
 
-      // Inicia o vídeo atual
+      // Inicia o vídeo
       if (currentVideo.readyState >= 3) {
-        playCurrentVideo();
+        playVideo();
       } else {
-        currentVideo.addEventListener('loadeddata', playCurrentVideo);
+        currentVideo.addEventListener('loadeddata', playVideo, { once: true });
       }
 
-      // Prepara o próximo vídeo
-      if (nextVideo) {
-        nextVideo.currentTime = 0;
-        // Pré-carrega o próximo vídeo
-        if (nextVideo.readyState < 3) {
-          nextVideo.load();
-        }
+      // Pré-carrega o próximo vídeo
+      if (nextVideoRef.current) {
+        nextVideoRef.current.src = videos[nextIndex];
+        nextVideoRef.current.load();
       }
 
       return () => {
         currentVideo.removeEventListener('ended', handleVideoEnd);
-        currentVideo.removeEventListener('loadeddata', playCurrentVideo);
       };
     }
-  }, [currentVideoIndex, nextVideoIndex, goToNextVideo]);
-
-  // Listener para detectar quando o próximo vídeo está quase pronto
-  useEffect(() => {
-    const currentVideo = videoRefs.current[currentVideoIndex];
-    const nextVideo = videoRefs.current[nextVideoIndex];
-    
-    if (currentVideo && nextVideo) {
-      const checkTimeUpdate = () => {
-        // Quando faltarem 0.5 segundos para o fim, prepara o próximo vídeo
-        if (currentVideo.duration - currentVideo.currentTime <= 0.5) {
-          nextVideo.currentTime = 0;
-          // Garante que o próximo vídeo está carregado
-          if (nextVideo.readyState < 3) {
-            nextVideo.load();
-          }
-        }
-      };
-      
-      currentVideo.addEventListener('timeupdate', checkTimeUpdate);
-      
-      return () => {
-        currentVideo.removeEventListener('timeupdate', checkTimeUpdate);
-      };
-    }
-  }, [currentVideoIndex, nextVideoIndex]);
+  }, [currentVideoIndex, videos, handleVideoEnd]);
 
   return (
     <motion.div
@@ -144,44 +90,33 @@ export default function HomePage() {
       transition={{ duration: 0.5 }}
       className="absolute inset-0 w-full h-full"
     >
-      {/* Vídeos de Background - Sem transição, troca direta */}
-      <div className="absolute inset-0 w-full h-full">
-        {videos.map((video, index) => {
-          const isCurrentVideo = index === currentVideoIndex;
-          const isNextVideo = index === nextVideoIndex;
-          
-          return (
-            <video
-              key={`video-${index}`}
-              ref={el => videoRefs.current[index] = el}
-              autoPlay={false}
-              muted={true}
-              playsInline={true}
-              controls={false}
-              preload={isCurrentVideo || isNextVideo ? "auto" : "none"}
-              className="absolute"
-              style={{ 
-                pointerEvents: 'none',
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%) scale(1.1)',
-                minWidth: '100vw',
-                minHeight: '100vh',
-                width: 'auto',
-                height: 'auto',
-                objectFit: 'cover',
-                // Vídeo atual sempre visível, próximo fica por baixo pronto
-                zIndex: isCurrentVideo ? 10 : isNextVideo ? 5 : 1,
-                display: isCurrentVideo || isNextVideo ? 'block' : 'none'
-              }}
-            >
-              <source src={video} type="video/mp4" />
-              Seu navegador não suporta a tag de vídeo.
-            </video>
-          );
-        })}
-      </div>
+      {/* Vídeo Principal */}
+      <video
+        ref={videoRef}
+        key={currentVideoIndex}
+        autoPlay
+        muted
+        playsInline
+        controls={false}
+        preload="auto"
+        className="absolute inset-0 w-full h-full object-cover"
+        style={{ 
+          transform: 'scale(1.1)',
+        }}
+      >
+        <source src={videos[currentVideoIndex]} type="video/mp4" />
+        Seu navegador não suporta a tag de vídeo.
+      </video>
+
+      {/* Vídeo de pré-carregamento (invisível) */}
+      <video
+        ref={nextVideoRef}
+        muted
+        playsInline
+        preload="auto"
+        className="hidden"
+        aria-hidden="true"
+      />
     </motion.div>
   );
 }
