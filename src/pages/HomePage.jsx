@@ -7,98 +7,59 @@ import backgroundVideo2 from "../02.mp4";
 
 export default function HomePage() {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
-  const videoRefs = useRef([]);
-  const containerRef = useRef(null);
-  
+  const videoRef = useRef(null);
+
   const videos = [backgroundVideo1, backgroundVideo2];
+
+  // Troca para o próximo vídeo
+  const goToNextVideo = () => {
+    setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % videos.length);
+  };
 
   // Pré-carrega todos os vídeos na inicialização
   useEffect(() => {
-    // Cria elementos de vídeo para cada URL
-    videoRefs.current = videos.map((videoSrc, index) => {
+    // Pré-carrega todos os vídeos
+    videos.forEach(videoSrc => {
       const video = document.createElement('video');
       video.src = videoSrc;
       video.preload = 'auto';
-      video.muted = true;
-      video.playsInline = true;
-      video.loop = false;
-      
-      // Pré-carrega o vídeo
       video.load();
-      
-      // Se for o primeiro vídeo, prepara para tocar
-      if (index === 0) {
-        video.autoplay = true;
-        video.play().catch(e => console.log('Autoplay prevented:', e));
-      }
-      
-      return video;
     });
-
-    // Cleanup
-    return () => {
-      videoRefs.current.forEach(video => {
-        video.pause();
-        video.src = '';
-        video.load();
-      });
-    };
   }, []);
 
-  // Gerencia a troca de vídeos com transição sobreposta
+  // Adiciona listener para o fim do vídeo
   useEffect(() => {
-    const currentVideo = videoRefs.current[currentVideoIndex];
-    if (!currentVideo) return;
+    const videoElement = videoRef.current;
+    if (!videoElement) return;
 
-    const handleEnded = () => {
-      const nextIndex = (currentVideoIndex + 1) % videos.length;
-      setCurrentVideoIndex(nextIndex);
-    };
-
-    currentVideo.addEventListener('ended', handleEnded);
-    
-    // Garante que o vídeo atual está tocando
-    if (currentVideo.paused) {
-      currentVideo.play().catch(e => console.log('Play prevented:', e));
-    }
+    videoElement.addEventListener("ended", goToNextVideo);
 
     return () => {
-      currentVideo.removeEventListener('ended', handleEnded);
+      videoElement.removeEventListener("ended", goToNextVideo);
     };
-  }, [currentVideoIndex, videos.length]);
+  }, [currentVideoIndex]);
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
-      className="absolute inset-0 w-full h-full overflow-hidden bg-black"
-      ref={containerRef}
+      transition={{ duration: 0.5 }}
+      className="absolute inset-0 w-full h-full"
     >
-      {/* Renderiza todos os vídeos com transição sobreposta simples */}
-      {videos.map((videoSrc, index) => (
-        <video
-          key={`video-${index}`}
-          className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000"
-          ref={el => {
-            if (el && !videoRefs.current[index]) {
-              videoRefs.current[index] = el;
-            }
-          }}
-          autoPlay={index === 0}
-          muted
-          playsInline
-          preload="auto"
-          style={{ 
-            opacity: index === currentVideoIndex ? 1 : 0,
-            zIndex: index === currentVideoIndex ? 2 : 1
-          }}
-        >
-          <source src={videoSrc} type="video/mp4" />
-          Seu navegador não suporta vídeos.
-        </video>
-      ))}
+      {/* Vídeo de Background */}
+      <video
+        ref={videoRef}
+        key={`video-${currentVideoIndex}`}
+        className="absolute inset-0 w-full h-full object-cover"
+        autoPlay
+        muted
+        playsInline
+        preload="auto"
+      >
+        <source src={videos[currentVideoIndex]} type="video/mp4" />
+        Seu navegador não suporta vídeos.
+      </video>
     </motion.div>
   );
 }
