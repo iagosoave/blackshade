@@ -45,21 +45,13 @@ export default function HomePage() {
     };
   }, []);
 
-  // Gerencia a troca de vídeos
+  // Gerencia a troca de vídeos com transição sobreposta
   useEffect(() => {
     const currentVideo = videoRefs.current[currentVideoIndex];
     if (!currentVideo) return;
 
     const handleEnded = () => {
       const nextIndex = (currentVideoIndex + 1) % videos.length;
-      const nextVideo = videoRefs.current[nextIndex];
-      
-      // Prepara o próximo vídeo
-      if (nextVideo) {
-        nextVideo.currentTime = 0;
-        nextVideo.play().catch(e => console.log('Play prevented:', e));
-      }
-      
       setCurrentVideoIndex(nextIndex);
     };
 
@@ -84,20 +76,11 @@ export default function HomePage() {
       className="absolute inset-0 w-full h-full overflow-hidden bg-black"
       ref={containerRef}
     >
-      {/* Renderiza todos os vídeos, mas só mostra o atual */}
+      {/* Renderiza todos os vídeos com transição sobreposta simples */}
       {videos.map((videoSrc, index) => (
-        <motion.video
+        <video
           key={`video-${index}`}
-          initial={{ opacity: 0 }}
-          animate={{ 
-            opacity: index === currentVideoIndex ? 1 : 0,
-            scale: index === currentVideoIndex ? 1 : 1.05
-          }}
-          transition={{ 
-            opacity: { duration: 0.5 },
-            scale: { duration: 0.5 }
-          }}
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000"
           ref={el => {
             if (el && !videoRefs.current[index]) {
               videoRefs.current[index] = el;
@@ -108,13 +91,13 @@ export default function HomePage() {
           playsInline
           preload="auto"
           style={{ 
-            zIndex: index === currentVideoIndex ? 1 : 0,
-            pointerEvents: 'none'
+            opacity: index === currentVideoIndex ? 1 : 0,
+            zIndex: index === currentVideoIndex ? 2 : 1
           }}
         >
           <source src={videoSrc} type="video/mp4" />
           Seu navegador não suporta vídeos.
-        </motion.video>
+        </video>
       ))}
     </motion.div>
   );
