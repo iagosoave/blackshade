@@ -7,61 +7,115 @@ import backgroundVideo2 from "../02.mp4";
 
 export default function HomePage() {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
-  const videoRef = useRef(null);
-  const [isVideoReady, setIsVideoReady] = useState(false);
-
+  const videoRefs = useRef([]);
+  const containerRef = useRef(null);
+  
   const videos = [backgroundVideo1, backgroundVideo2];
 
-  // Troca para o próximo vídeo
-  const goToNextVideo = () => {
-    setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % videos.length);
-  };
-
-  // Marca vídeo como pronto
+  // Pré-carrega todos os vídeos na inicialização
   useEffect(() => {
-    const videoElement = videoRef.current;
-    if (!videoElement) return;
+    // Cria elementos de vídeo para cada URL
+    videoRefs.current = videos.map((videoSrc, index) => {
+      const video = document.createElement('video');
+      video.src = videoSrc;
+      video.preload = 'auto';
+      video.muted = true;
+      video.playsInline = true;
+      video.loop = false;
+      
+      // Pré-carrega o vídeo
+      video.load();
+      
+      // Se for o primeiro vídeo, prepara para tocar
+      if (index === 0) {
+        video.autoplay = true;
+        video.play().catch(e => console.log('Autoplay prevented:', e));
+      }
+      
+      return video;
+    });
 
-    const handleCanPlay = () => setIsVideoReady(true);
+    // Cleanup
+    return () => {
+      videoRefs.current.forEach(video => {
+        video.pause();
+        video.src = '';
+        video.load();
+      });
+    };
+  }, []);
 
-    videoElement.addEventListener("canplay", handleCanPlay);
-    videoElement.addEventListener("ended", goToNextVideo);
+  // Gerencia a troca de vídeos
+  useEffect(() => {
+    const currentVideo = videoRefs.current[currentVideoIndex];
+    if (!currentVideo) return;
+
+    const handleEnded = () => {
+      const nextIndex = (currentVideoIndex + 1) % videos.length;
+      const nextVideo = videoRefs.current[nextIndex];
+      
+      // Prepara o próximo vídeo
+      if (nextVideo) {
+        nextVideo.currentTime = 0;
+        nextVideo.play().catch(e => console.log('Play prevented:', e));
+      }
+      
+      setCurrentVideoIndex(nextIndex);
+    };
+
+    currentVideo.addEventListener('ended', handleEnded);
+    
+    // Garante que o vídeo atual está tocando
+    if (currentVideo.paused) {
+      currentVideo.play().catch(e => console.log('Play prevented:', e));
+    }
 
     return () => {
-      videoElement.removeEventListener("canplay", handleCanPlay);
-      videoElement.removeEventListener("ended", goToNextVideo);
+      currentVideo.removeEventListener('ended', handleEnded);
     };
-  }, [currentVideoIndex]);
+  }, [currentVideoIndex, videos.length]);
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.5 }}
-      className="absolute inset-0 w-full h-full"
+      transition={{ duration: 0.3 }}
+      className="absolute inset-0 w-full h-full overflow-hidden bg-black"
+      ref={containerRef}
     >
-      {/* Vídeo de Background */}
-      <video
-        ref={videoRef}
-        key={`video-${currentVideoIndex}`}
-        className="absolute inset-0 w-full h-full object-cover"
-        autoPlay
-        muted
-        playsInline
-        preload="auto"
-        style={{ opacity: isVideoReady ? 1 : 0, transition: "opacity 0.5s" }}
-      >
-        <source src={videos[currentVideoIndex]} type="video/mp4" />
-        Seu navegador não suporta vídeos.
-      </video>
-
-      {/* Loading overlay até o vídeo ficar pronto */}
-      {!isVideoReady && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black">
-          <div className="text-white text-lg animate-pulse">Carregando...</div>
-        </div>
-      )}
+      {/* Renderiza todos os vídeos, mas só mostra o atual */}
+      {videos.map((videoSrc, index) => (
+        <motion.video
+          key={`video-${index}`}
+          initial={{ opacity: 0 }}
+          animate={{ 
+            opacity: index === currentVideoIndex ? 1 : 0,
+            scale: index === currentVideoIndex ? 1 : 1.05
+          }}
+          transition={{ 
+            opacity: { duration: 0.5 },
+            scale: { duration: 0.5 }
+          }}
+          className="absolute inset-0 w-full h-full object-cover"
+          ref={el => {
+            if (el && !videoRefs.current[index]) {
+              videoRefs.current[index] = el;
+            }
+          }}
+          autoPlay={index === 0}
+          muted
+          playsInline
+          preload="auto"
+          style={{ 
+            zIndex: index === currentVideoIndex ? 1 : 0,
+            pointerEvents: 'none'
+          }}
+        >
+          <source src={videoSrc} type="video/mp4" />
+          Seu navegador não suporta vídeos.
+        </motion.video>
+      ))}
     </motion.div>
   );
 }
