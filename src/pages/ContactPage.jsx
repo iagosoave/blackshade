@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import ContactSection from '../sections/ContactSection';
 
 // Vídeos de background
-import backgroundVideo3 from '../03.mp4';
+import backgroundVideo3 from '../02.mp4';
 
 export default function ContactPage({ language }) {
   const navigate = useNavigate();
