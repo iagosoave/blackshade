@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import useContentful from '../hocks/useContentful';
+import useContentful from '../hooks/useContentful';
 import ProjectGrid from '../components/ProjectGrid';
 import { translations } from '../config/translations';
 

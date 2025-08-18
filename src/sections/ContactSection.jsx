@@ -1,61 +1,18 @@
-import React, { useRef, useEffect } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { FaInstagram, FaVimeoV, FaWhatsapp } from 'react-icons/fa';
 import { translations } from '../config/translations';
-import backgroundVideo from '../02.mp4';
+import BackgroundVideo from '../components/BackgroundVideo';
+import backgroundVideo3 from '../02.mp4';
 
 export default function ContactSection({ language }) {
-  const videoRef = useRef(null);
   const t = translations[language] || translations.pt;
   const contactData = t.contact;
 
-  // Efeito para garantir o autoplay do vídeo de fundo dentro do ContactSection
-  useEffect(() => {
-    const videoElement = videoRef.current;
-
-    if (videoElement) {
-      videoElement.muted = true;
-      videoElement.playsInline = true;
-
-      const playVideo = () => {
-        videoElement.play().catch(err => {
-          console.warn('Erro ao tentar reproduzir o vídeo automaticamente no ContactSection:', err);
-          document.addEventListener('click', () => {
-            videoElement.play().catch(e => console.error('Erro ao reproduzir vídeo após clique no ContactSection:', e));
-          }, { once: true });
-        });
-      };
-
-      if (videoElement.readyState >= 3) {
-        playVideo();
-      } else {
-        videoElement.addEventListener('loadeddata', playVideo);
-        return () => videoElement.removeEventListener('loadeddata', playVideo);
-      }
-    }
-  }, []);
-
   return (
     <div className="min-h-screen relative">
-      {/* Vídeo de Background */}
-      <div className="absolute inset-0 w-full h-full overflow-hidden">
-        <video
-          ref={videoRef}
-          autoPlay={true}
-          loop={true}
-          muted={true}
-          playsInline={true}
-          controls={false}
-          preload="auto"
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ opacity: 0.3, pointerEvents: 'none' }}
-        >
-          <source src={backgroundVideo} type="video/mp4" />
-          Seu navegador não suporta a tag de vídeo.
-        </video>
-      </div>
+      <BackgroundVideo videos={[backgroundVideo3]} opacity={0.3} loop={true} />
 
-      {/* Conteúdo do Contato */}
       <div className="relative z-10 min-h-screen flex items-center justify-center px-6 md:px-8">
         <motion.div
           className="max-w-2xl w-full text-center"
@@ -64,8 +21,6 @@ export default function ContactSection({ language }) {
           transition={{ duration: 0.6 }}
         >
           <div className="text-white space-y-6 md:space-y-8">
-
-            {/* Email */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -83,7 +38,6 @@ export default function ContactSection({ language }) {
               </a>
             </motion.div>
 
-            {/* Executive Production - Gus Vargas */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -110,7 +64,6 @@ export default function ContactSection({ language }) {
               </a>
             </motion.div>
 
-            {/* Service - Rodrigo Sivieri */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -137,7 +90,6 @@ export default function ContactSection({ language }) {
               </a>
             </motion.div>
 
-            {/* Social Media */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -169,7 +121,6 @@ export default function ContactSection({ language }) {
               </div>
             </motion.div>
 
-            {/* Address */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -183,7 +134,6 @@ export default function ContactSection({ language }) {
                 {contactData.info.address}
               </p>
             </motion.div>
-
           </div>
         </motion.div>
       </div>

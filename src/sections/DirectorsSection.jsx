@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import DirectorsList from '../components/DirectorsList';
 import DirectorPortfolio from '../components/DirectorPortfolio';
-import useContentful from '../hocks/useContentful';
+import useContentful from '../hooks/useContentful';
 
 export default function DirectorsSection({ language, onVideoOpen, onDirectorSelect }) {
   const [selectedDirector, setSelectedDirector] = useState(null);
