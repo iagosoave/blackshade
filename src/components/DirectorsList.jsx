@@ -1,6 +1,5 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import BackgroundImage from './background.avif';
 
 export default function DirectorsList({ directors, onSelectDirector }) {
   const containerVariants = {
@@ -30,7 +29,8 @@ export default function DirectorsList({ directors, onSelectDirector }) {
       {/* Camada de fundo com a tag <img> otimizada */}
       <div className="absolute inset-0 w-full h-full">
         <img
-          src={BackgroundImage}
+          // Referencia a imagem diretamente da pasta public
+          src="/imagens/background.avif"
           alt="Imagem de fundo de diretores de cinema"
           className="w-full h-full object-cover"
           loading="eager" // Indica para o navegador carregar a imagem imediatamente

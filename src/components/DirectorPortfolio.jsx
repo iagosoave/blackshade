@@ -2,7 +2,9 @@ import React, { useState, useCallback, memo } from 'react';
 import { motion } from 'framer-motion';
 import VideoPopup from './VideoPopup';
 import { translations } from '../config/translations';
-import backgroundBioImage from './backgroundbio.png';
+
+// Remova a importação da imagem.
+// Ela está na pasta public e é acessada via URL.
 
 // Componente de item do portfolio com memoização
 const PortfolioItem = memo(({ item, index, onClick }) => (
@@ -98,18 +100,19 @@ export default function DirectorPortfolio({ director, onBack, loading, onVideoOp
 
         {/* Biografia do Diretor */}
         {director && (
-          <div
-            className="flex flex-col md:flex-row items-center md:items-start p-6 md:p-8 relative h-auto md:h-[60vh] w-full"
-            style={{
-              backgroundImage: `url(${backgroundBioImage})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat',
-              backgroundAttachment: 'fixed',
-            }}
-          >
-            {/* Overlay */}
-            <div className="absolute inset-0 bg-black opacity-70 z-0"></div>
+          <div className="flex flex-col md:flex-row items-center md:items-start p-6 md:p-8 relative h-auto md:h-[60vh] w-full">
+            {/* OTIMIZAÇÃO: Usando a tag <img> para o background */}
+            <div className="absolute inset-0 w-full h-full">
+              <img
+                // Caminho corrigido para a imagem na pasta public/imagens
+                src="/imagens/backgroundbio.png"
+                alt="Imagem de fundo da biografia"
+                className="w-full h-full object-cover"
+                loading="eager" // Carrega a imagem imediatamente
+              />
+              {/* Overlay sobre a imagem */}
+              <div className="absolute inset-0 bg-black opacity-70 z-0"></div>
+            </div>
 
             <motion.div
               className="w-full md:w-1/3 flex justify-center mb-4 md:mb-0 z-10 pt-12 md:pt-0"
