@@ -1,64 +1,110 @@
 // src/components/BackgroundVideo.jsx
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 
-export default function BackgroundVideo({ videos, opacity = 1 }) {
+export default function BackgroundVideo({ videos, opacity = 1, loop = false }) {
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const videoRef = useRef(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  const nextVideoUrl = useRef(null);
+
+  // Pré-carregar próximo vídeo
+  useEffect(() => {
+    if (videos.length <= 1) return;
+    
+    const nextIndex = (currentVideoIndex + 1) % videos.length;
+    nextVideoUrl.current = videos[nextIndex];
+    
+    // Pré-carregar via link element
+    const link = document.createElement('link');
+    link.rel = 'prefetch';
+    link.as = 'video';
+    link.href = nextVideoUrl.current;
+    document.head.appendChild(link);
+    
+    return () => {
+      if (document.head.contains(link)) {
+        document.head.removeChild(link);
+      }
+    };
+  }, [currentVideoIndex, videos]);
+
+  const handleVideoEnd = useCallback(() => {
+    if (!loop && currentVideoIndex === videos.length - 1) return;
+    
+    setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % videos.length);
+  }, [videos.length, loop, currentVideoIndex]);
 
   useEffect(() => {
-    if (!videoRef.current || !videos || videos.length === 0) return;
+    const videoElement = videoRef.current;
+    if (!videoElement) return;
 
-    const video = videoRef.current;
+    // Configurações essenciais
+    videoElement.muted = true;
+    videoElement.playsInline = true;
+    videoElement.setAttribute('webkit-playsinline', 'true');
+    videoElement.preload = 'auto';
     
-    // Configurar o vídeo
-    video.src = videos[currentIndex];
-    
-    // Evento quando o vídeo está pronto
-    const handleCanPlay = () => {
-      setIsLoading(false);
-      video.play().catch(error => {
-        console.error("Autoplay bloqueado:", error);
-      });
-    };
+    // Loop para vídeo único
+    if (videos.length === 1 && loop) {
+      videoElement.loop = true;
+    } else {
+      videoElement.loop = false;
+    }
 
-    // Evento quando o vídeo termina
-    const handleEnded = () => {
-      if (videos.length > 1) {
-        setCurrentIndex((prev) => (prev + 1) % videos.length);
+    // Função para tocar o vídeo
+    const playVideo = async () => {
+      try {
+        await videoElement.play();
+      } catch (err) {
+        console.log('Autoplay bloqueado, aguardando interação');
+        
+        const handleFirstInteraction = () => {
+          videoElement.play();
+          document.removeEventListener('click', handleFirstInteraction);
+          document.removeEventListener('touchstart', handleFirstInteraction);
+        };
+        
+        document.addEventListener('click', handleFirstInteraction, { once: true });
+        document.addEventListener('touchstart', handleFirstInteraction, { once: true });
       }
     };
 
-    video.addEventListener('canplay', handleCanPlay);
-    video.addEventListener('ended', handleEnded);
-
-    return () => {
-      video.removeEventListener('canplay', handleCanPlay);
-      video.removeEventListener('ended', handleEnded);
+    // Atualizar source e tocar
+    videoElement.src = videos[currentVideoIndex];
+    
+    const handleCanPlay = () => {
+      playVideo();
     };
-  }, [currentIndex, videos]);
+
+    const handleEnded = () => {
+      handleVideoEnd();
+    };
+
+    // Adicionar listeners
+    videoElement.addEventListener('canplay', handleCanPlay);
+    
+    if (videos.length > 1 || !loop) {
+      videoElement.addEventListener('ended', handleEnded);
+    }
+
+    // Cleanup
+    return () => {
+      videoElement.removeEventListener('canplay', handleCanPlay);
+      videoElement.removeEventListener('ended', handleEnded);
+    };
+  }, [currentVideoIndex, videos, loop, handleVideoEnd]);
 
   return (
     <div className="absolute inset-0 w-full h-full overflow-hidden bg-black">
-      {/* Loading placeholder */}
-      {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-12 h-12 border-2 border-white border-t-transparent rounded-full animate-spin" />
-        </div>
-      )}
-      
-      {/* Video element */}
       <video
         ref={videoRef}
-        className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
+        className="absolute inset-0 w-full h-full object-cover"
         style={{ 
-          opacity: isLoading ? 0 : opacity,
+          opacity,
           pointerEvents: 'none'
         }}
         muted
         playsInline
-        loop={videos.length === 1}
-        preload="auto"
+        autoPlay
       />
     </div>
   );
