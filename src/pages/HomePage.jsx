@@ -1,19 +1,19 @@
 // src/pages/HomePage.jsx
 import React from 'react';
 import { motion } from 'framer-motion';
-import BackgroundVideo from "../components/BackgroundVideo";
+import ProfessionalVideoCarousel from "../components/ProfessionalVideoCarousel";
 
 export default function HomePage() {
-  // IMPORTANTE: Vídeos agora em public/videos/
+  // IMPORTANTE: Configure seus vídeos com as otimizações corretas
   const videos = [
-    '/videos/01.mp4',
-    '/videos/02.mp4',
-    '/videos/03.mp4',
-    '/videos/04.mp4',
-    '/videos/05.mp4',
-    '/videos/06.mp4',
-    '/videos/07.mp4',
-    '/videos/08.mp4'
+    { url: '/videos/01.mp4' },
+    { url: '/videos/02.mp4' },
+    { url: '/videos/03.mp4' },
+    { url: '/videos/04.mp4' },
+    { url: '/videos/05.mp4' },
+    { url: '/videos/06.mp4' },
+    { url: '/videos/07.mp4' },
+    { url: '/videos/08.mp4' }
   ];
 
   return (
@@ -24,11 +24,7 @@ export default function HomePage() {
       transition={{ duration: 0.5 }}
       className="absolute inset-0 w-full h-full"
     >
-      <BackgroundVideo 
-        videos={videos} 
-        opacity={1} 
-        loop={true}
-      />
+      <ProfessionalVideoCarousel videos={videos} />
     </motion.div>
   );
 }
