@@ -1,10 +1,19 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import ContactSection from '../sections/ContactSection';
 
 export default function ContactPage({ language }) {
   const navigate = useNavigate();
+  const [videoLoaded, setVideoLoaded] = useState(false);
+
+  // Pré-carregar o vídeo quando o componente montar
+  useEffect(() => {
+    // Importar o vídeo dinamicamente para melhor performance
+    import('../02.mp4').then(() => {
+      setVideoLoaded(true);
+    });
+  }, []);
 
   const handleClose = () => {
     navigate('/');
@@ -47,7 +56,18 @@ export default function ContactPage({ language }) {
         </motion.button>
         
         <div className="w-full h-full overflow-y-auto">
-          <ContactSection language={language} />
+          {/* Mostrar um placeholder enquanto o vídeo carrega */}
+          {!videoLoaded && (
+            <div className="min-h-screen flex items-center justify-center">
+              <div className="text-white text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+                <p className="opacity-60">Carregando...</p>
+              </div>
+            </div>
+          )}
+          
+          {/* Renderizar o ContactSection apenas quando o vídeo estiver pronto */}
+          {videoLoaded && <ContactSection language={language} />}
         </div>
       </motion.div>
     </motion.div>
