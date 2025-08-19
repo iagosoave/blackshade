@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import BackgroundImage from './background.avif'; // Importe a imagem de fundo
+import BackgroundImage from './background.avif';
 
 export default function DirectorsList({ directors, onSelectDirector }) {
   const containerVariants = {
@@ -27,17 +27,14 @@ export default function DirectorsList({ directors, onSelectDirector }) {
 
   return (
     <div className="min-h-screen flex items-center justify-center relative">
-      {/* Camada de fundo com imagem */}
-      <div
-        className="absolute inset-0 w-full h-full"
-        style={{
-          backgroundImage: `url(${BackgroundImage})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          backgroundAttachment: 'fixed',
-        }}
-      >
+      {/* Camada de fundo com a tag <img> otimizada */}
+      <div className="absolute inset-0 w-full h-full">
+        <img
+          src={BackgroundImage}
+          alt="Imagem de fundo de diretores de cinema"
+          className="w-full h-full object-cover"
+          loading="eager" // Indica para o navegador carregar a imagem imediatamente
+        />
         {/* Overlay semi-transparente sobre a imagem de fundo */}
         <div className="absolute inset-0 w-full h-full bg-black" style={{ opacity: 0.75 }}></div>
       </div>
@@ -49,7 +46,6 @@ export default function DirectorsList({ directors, onSelectDirector }) {
         animate="visible"
         variants={containerVariants}
       >
-        {/* Lista vertical com alinhamento à esquerda dentro do container centralizado */}
         <div className="flex flex-col items-start text-left" style={{ paddingLeft: '0', paddingRight: '0' }}>
           {directors.map((director) => (
             <motion.div
