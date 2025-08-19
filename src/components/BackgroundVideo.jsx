@@ -1,97 +1,33 @@
 // src/components/BackgroundVideo.jsx
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useEffect, useRef } from 'react';
+import { useVideoPreloader } from '../hooks/useVideoPreloader';
 
-export default function BackgroundVideo({ videos, opacity = 1, loop = false }) {
-  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+export default function BackgroundVideo({ videos, opacity = 1, loop = true }) {
+  const { currentVideo, goToNext } = useVideoPreloader(videos);
   const videoRef = useRef(null);
-  const nextVideoUrl = useRef(null);
 
-  // Pré-carregar próximo vídeo
-  useEffect(() => {
-    if (videos.length <= 1) return;
-    
-    const nextIndex = (currentVideoIndex + 1) % videos.length;
-    nextVideoUrl.current = videos[nextIndex];
-    
-    // Pré-carregar via link element
-    const link = document.createElement('link');
-    link.rel = 'prefetch';
-    link.as = 'video';
-    link.href = nextVideoUrl.current;
-    document.head.appendChild(link);
-    
-    return () => {
-      if (document.head.contains(link)) {
-        document.head.removeChild(link);
-      }
-    };
-  }, [currentVideoIndex, videos]);
-
-  const handleVideoEnd = useCallback(() => {
-    if (!loop && currentVideoIndex === videos.length - 1) return;
-    
-    setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % videos.length);
-  }, [videos.length, loop, currentVideoIndex]);
+  // Ação quando o vídeo termina
+  const handleVideoEnd = () => {
+    // Se a lista tiver mais de um vídeo, vá para o próximo
+    if (videos.length > 1) {
+      goToNext();
+    }
+  };
 
   useEffect(() => {
-    const videoElement = videoRef.current;
-    if (!videoElement) return;
+    if (videoRef.current) {
+      // Atualiza o src do vídeo com o vídeo atual do preloader
+      videoRef.current.src = currentVideo;
+      
+      // Define a propriedade loop com base na quantidade de vídeos
+      videoRef.current.loop = loop && videos.length === 1;
 
-    // Configurações essenciais
-    videoElement.muted = true;
-    videoElement.playsInline = true;
-    videoElement.setAttribute('webkit-playsinline', 'true');
-    videoElement.preload = 'auto';
-    
-    // Loop para vídeo único
-    if (videos.length === 1 && loop) {
-      videoElement.loop = true;
-    } else {
-      videoElement.loop = false;
+      // Tenta dar play no vídeo
+      videoRef.current.play().catch(error => {
+        console.error("Autoplay foi impedido:", error);
+      });
     }
-
-    // Função para tocar o vídeo
-    const playVideo = async () => {
-      try {
-        await videoElement.play();
-      } catch (err) {
-        console.log('Autoplay bloqueado, aguardando interação');
-        
-        const handleFirstInteraction = () => {
-          videoElement.play();
-          document.removeEventListener('click', handleFirstInteraction);
-          document.removeEventListener('touchstart', handleFirstInteraction);
-        };
-        
-        document.addEventListener('click', handleFirstInteraction, { once: true });
-        document.addEventListener('touchstart', handleFirstInteraction, { once: true });
-      }
-    };
-
-    // Atualizar source e tocar
-    videoElement.src = videos[currentVideoIndex];
-    
-    const handleCanPlay = () => {
-      playVideo();
-    };
-
-    const handleEnded = () => {
-      handleVideoEnd();
-    };
-
-    // Adicionar listeners
-    videoElement.addEventListener('canplay', handleCanPlay);
-    
-    if (videos.length > 1 || !loop) {
-      videoElement.addEventListener('ended', handleEnded);
-    }
-
-    // Cleanup
-    return () => {
-      videoElement.removeEventListener('canplay', handleCanPlay);
-      videoElement.removeEventListener('ended', handleEnded);
-    };
-  }, [currentVideoIndex, videos, loop, handleVideoEnd]);
+  }, [currentVideo, videos.length, loop]);
 
   return (
     <div className="absolute inset-0 w-full h-full overflow-hidden bg-black">
@@ -105,6 +41,7 @@ export default function BackgroundVideo({ videos, opacity = 1, loop = false }) {
         muted
         playsInline
         autoPlay
+        onEnded={handleVideoEnd}
       />
     </div>
   );
