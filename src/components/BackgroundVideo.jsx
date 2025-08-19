@@ -1,152 +1,144 @@
-// components/BackgroundVideo.jsx
-import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+// components/BackgroundVideo.jsx - VERSÃO AVANÇADA
+import React, { useState, useRef, useEffect } from 'react';
 
 /**
- * BackgroundVideo Component - Optimized for 2025
- * Features:
- * - Instant transitions between videos
- * - Preloading strategy for smooth playback
- * - Memory optimization
- * - Performance monitoring
+ * BackgroundVideo Avançado - Double Buffer para transições instantâneas
+ * Mantém 2 elementos de vídeo e alterna entre eles
  */
-export default function BackgroundVideo({ 
-  videos, 
-  opacity = 1, 
-  loop = false,
-  transitionSpeed = 'instant', // 'instant' | 'fast' | 'smooth'
-  preloadStrategy = 'progressive' // 'all' | 'progressive' | 'lazy'
-}) {
-  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const videoRef = useRef(null);
-  const nextVideoRef = useRef(null);
-  const preloadedVideos = useRef(new Map());
+export default function BackgroundVideo({ videos, opacity = 1, loop = false }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [activePlayer, setActivePlayer] = useState(1);
+  
+  // Dois players de vídeo
+  const video1Ref = useRef(null);
+  const video2Ref = useRef(null);
+  
+  // Estado de carregamento
+  const [isReady, setIsReady] = useState(false);
 
-  // Determine transition class based on speed
-  const transitionClass = useMemo(() => {
-    switch (transitionSpeed) {
-      case 'instant': return '';
-      case 'fast': return 'transition-opacity duration-150';
-      case 'smooth': return 'transition-opacity duration-500';
-      default: return '';
-    }
-  }, [transitionSpeed]);
-
-  // Preload videos based on strategy
+  // Inicialização
   useEffect(() => {
-    const preloadVideo = (src, index) => {
-      if (preloadedVideos.current.has(src)) return;
-      
-      const video = document.createElement('video');
-      video.src = src;
-      video.preload = 'auto';
+    if (!video1Ref.current || !video2Ref.current) return;
+
+    const setupVideo = (video) => {
       video.muted = true;
       video.playsInline = true;
-      
-      video.addEventListener('canplaythrough', () => {
-        preloadedVideos.current.set(src, true);
-        console.log(`Video ${index} preloaded`);
-      });
-      
-      video.load();
+      video.setAttribute('webkit-playsinline', 'true');
+      video.preload = 'auto';
+      video.style.position = 'absolute';
+      video.style.top = '0';
+      video.style.left = '0';
+      video.style.width = '100%';
+      video.style.height = '100%';
+      video.style.objectFit = 'cover';
     };
 
-    if (preloadStrategy === 'all') {
-      // Preload all videos at once
-      videos.forEach((src, index) => preloadVideo(src, index));
-    } else if (preloadStrategy === 'progressive') {
-      // Preload current and next 2 videos
-      const indicesToPreload = [
-        currentVideoIndex,
-        (currentVideoIndex + 1) % videos.length,
-        (currentVideoIndex + 2) % videos.length
-      ];
-      indicesToPreload.forEach(index => preloadVideo(videos[index], index));
-    }
-    // 'lazy' strategy doesn't preload
-  }, [currentVideoIndex, videos, preloadStrategy]);
+    setupVideo(video1Ref.current);
+    setupVideo(video2Ref.current);
 
-  const handleVideoEnd = useCallback(() => {
-    if (!loop && currentVideoIndex === videos.length - 1) return;
+    // Carregar primeiro vídeo
+    video1Ref.current.src = videos[0];
     
-    setIsTransitioning(true);
-    
-    // For instant transition, change immediately
-    if (transitionSpeed === 'instant') {
-      setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % videos.length);
-      setIsTransitioning(false);
-    } else {
-      // For smooth transitions, wait for fade
-      setTimeout(() => {
-        setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % videos.length);
-        setIsTransitioning(false);
-      }, transitionSpeed === 'fast' ? 150 : 500);
+    // Pré-carregar segundo vídeo se existir
+    if (videos.length > 1) {
+      video2Ref.current.src = videos[1];
+      video2Ref.current.load();
     }
-  }, [videos.length, loop, currentVideoIndex, transitionSpeed]);
 
+    // Iniciar reprodução quando pronto
+    video1Ref.current.addEventListener('canplaythrough', () => {
+      video1Ref.current.play().catch(console.log);
+      setIsReady(true);
+    }, { once: true });
+
+    video1Ref.current.load();
+  }, [videos]);
+
+  // Gerenciar transições
   useEffect(() => {
-    const videoElement = videoRef.current;
-    if (!videoElement) return;
+    if (!isReady) return;
 
-    // Video configuration
-    videoElement.muted = true;
-    videoElement.playsInline = true;
-    videoElement.setAttribute('webkit-playsinline', 'true');
-    
-    // Handle single video loop
+    const currentVideo = activePlayer === 1 ? video1Ref.current : video2Ref.current;
+    const nextVideo = activePlayer === 1 ? video2Ref.current : video1Ref.current;
+
+    if (!currentVideo || !nextVideo) return;
+
+    const handleVideoEnd = () => {
+      if (!loop && currentIndex === videos.length - 1) return;
+
+      const nextIndex = (currentIndex + 1) % videos.length;
+      
+      // Preparar próximo vídeo
+      nextVideo.src = videos[nextIndex];
+      
+      // Quando próximo vídeo estiver pronto, trocar
+      nextVideo.addEventListener('canplay', () => {
+        // Trocar vídeos instantaneamente
+        currentVideo.style.display = 'none';
+        nextVideo.style.display = 'block';
+        nextVideo.play().catch(console.log);
+        
+        // Atualizar estados
+        setActivePlayer(activePlayer === 1 ? 2 : 1);
+        setCurrentIndex(nextIndex);
+        
+        // Resetar vídeo anterior
+        currentVideo.currentTime = 0;
+        
+        // Pré-carregar próximo
+        if (videos.length > 2) {
+          const futureIndex = (nextIndex + 1) % videos.length;
+          setTimeout(() => {
+            currentVideo.src = videos[futureIndex];
+            currentVideo.load();
+          }, 100);
+        }
+      }, { once: true });
+
+      nextVideo.load();
+    };
+
+    // Se apenas um vídeo e loop ativado
     if (videos.length === 1 && loop) {
-      videoElement.loop = true;
+      currentVideo.loop = true;
     } else {
-      videoElement.loop = false;
-      videoElement.addEventListener('ended', handleVideoEnd);
+      currentVideo.addEventListener('ended', handleVideoEnd);
+      
+      return () => {
+        currentVideo.removeEventListener('ended', handleVideoEnd);
+      };
     }
-
-    // Auto-play with fallback
-    const playVideo = async () => {
-      try {
-        await videoElement.play();
-      } catch (err) {
-        console.warn('Autoplay failed, attempting with user interaction:', err);
-        // Fallback: play on first user interaction
-        const playOnInteraction = () => {
-          videoElement.play();
-          document.removeEventListener('click', playOnInteraction);
-        };
-        document.addEventListener('click', playOnInteraction);
-      }
-    };
-
-    if (videoElement.readyState >= 3) {
-      playVideo();
-    } else {
-      videoElement.addEventListener('loadeddata', playVideo);
-    }
-
-    return () => {
-      videoElement.removeEventListener('ended', handleVideoEnd);
-      videoElement.removeEventListener('loadeddata', playVideo);
-    };
-  }, [currentVideoIndex, videos.length, handleVideoEnd, loop]);
+  }, [activePlayer, currentIndex, videos, loop, isReady]);
 
   return (
-    <div className="absolute inset-0 w-full h-full overflow-hidden">
+    <div className="absolute inset-0 w-full h-full overflow-hidden bg-black">
       <video
-        key={`video-${currentVideoIndex}`}
-        ref={videoRef}
-        autoPlay
+        ref={video1Ref}
+        style={{
+          display: activePlayer === 1 ? 'block' : 'none',
+          opacity,
+          pointerEvents: 'none'
+        }}
         muted
         playsInline
-        controls={false}
-        preload="auto"
-        className={`absolute inset-0 w-full h-full object-cover ${transitionClass}`}
-        style={{ 
-          opacity: isTransitioning && transitionSpeed !== 'instant' ? 0 : opacity, 
-          pointerEvents: 'none' 
+      />
+      <video
+        ref={video2Ref}
+        style={{
+          display: activePlayer === 2 ? 'block' : 'none',
+          opacity,
+          pointerEvents: 'none'
         }}
-      >
-        <source src={videos[currentVideoIndex]} type="video/mp4" />
-        Your browser does not support the video tag.
-      </video>
+        muted
+        playsInline
+      />
+      
+      {/* Indicador de carregamento */}
+      {!isReady && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+        </div>
+      )}
     </div>
   );
 }

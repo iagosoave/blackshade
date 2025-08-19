@@ -1,8 +1,9 @@
+// pages/HomePage.jsx
 import React from 'react';
 import { motion } from 'framer-motion';
 import BackgroundVideo from "../components/BackgroundVideo";
 
-// Importe todos os vídeos da home que você deseja
+// Importar todos os vídeos
 import backgroundVideo1 from "../01.mp4";
 import backgroundVideo2 from "../02.mp4";
 import backgroundVideo3 from "../03.mp4";
@@ -32,7 +33,11 @@ export default function HomePage() {
       transition={{ duration: 0.5 }}
       className="absolute inset-0 w-full h-full"
     >
-      <BackgroundVideo videos={videos} opacity={1} loop={true} />
+      <BackgroundVideo 
+        videos={videos} 
+        opacity={1} 
+        loop={true}
+      />
     </motion.div>
   );
 }
