@@ -1,60 +1,22 @@
-import React, { useState, useEffect, useMemo } from 'react';
+// src/sections/ContactSection.jsx
+import React from 'react';
 import { motion } from 'framer-motion';
 import { FaInstagram, FaVimeoV, FaWhatsapp } from 'react-icons/fa';
 import { translations } from '../config/translations';
 import BackgroundVideo from '../components/BackgroundVideo';
 
-// Lazy loading do vídeo
-const loadVideo = () => import('../02.mp4');
-
 export default function ContactSection({ language }) {
   const t = translations[language] || translations.pt;
   const contactData = t.contact;
-  const [videoSrc, setVideoSrc] = useState(null);
-  const [videoReady, setVideoReady] = useState(false);
-
-  // Carregar o vídeo de forma assíncrona
-  useEffect(() => {
-    loadVideo().then((module) => {
-      setVideoSrc(module.default);
-      // Pré-carregar o vídeo no navegador
-      const video = document.createElement('video');
-      video.src = module.default;
-      video.onloadeddata = () => {
-        setVideoReady(true);
-      };
-      video.load();
-    });
-  }, []);
-
-  // Memoizar o componente de vídeo para evitar re-renderizações
-  const videoComponent = useMemo(() => {
-    if (!videoSrc) return null;
-    
-    return (
-      <div className={`transition-opacity duration-500 ${videoReady ? 'opacity-100' : 'opacity-0'}`}>
-        <BackgroundVideo 
-          videos={[videoSrc]} 
-          opacity={0.3} 
-          loop={true}
-          // Adicionar propriedades para melhor performance
-          muted={true}
-          playsInline={true}
-          preload="metadata" // Carregar apenas metadados inicialmente
-        />
-      </div>
-    );
-  }, [videoSrc, videoReady]);
 
   return (
     <div className="min-h-screen relative">
-      {/* Fallback de fundo enquanto o vídeo carrega */}
-      {!videoReady && (
-        <div className="absolute inset-0 bg-gradient-to-b from-black/80 to-black/60" />
-      )}
-      
-      {/* Renderizar o vídeo quando estiver pronto */}
-      {videoComponent}
+      {/* Vídeo de fundo - agora com path direto */}
+      <BackgroundVideo 
+        videos={['/videos/02.mp4']} 
+        opacity={0.3} 
+        loop={true}
+      />
 
       <div className="relative z-10 min-h-screen flex items-center justify-center px-6 md:px-8">
         <motion.div

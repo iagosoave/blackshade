@@ -1,28 +1,19 @@
-// pages/HomePage.jsx
+// src/pages/HomePage.jsx
 import React from 'react';
 import { motion } from 'framer-motion';
 import BackgroundVideo from "../components/BackgroundVideo";
 
-// Importar todos os vídeos
-import backgroundVideo1 from "../01.mp4";
-import backgroundVideo2 from "../02.mp4";
-import backgroundVideo3 from "../03.mp4";
-import backgroundVideo4 from "../04.mp4";
-import backgroundVideo5 from "../05.mp4";
-import backgroundVideo6 from "../06.mp4";
-import backgroundVideo7 from "../07.mp4";
-import backgroundVideo8 from "../08.mp4";
-
 export default function HomePage() {
+  // IMPORTANTE: Vídeos agora em public/videos/
   const videos = [
-    backgroundVideo1,
-    backgroundVideo2,
-    backgroundVideo3,
-    backgroundVideo4,
-    backgroundVideo5,
-    backgroundVideo6,
-    backgroundVideo7,
-    backgroundVideo8
+    '/videos/01.mp4',
+    '/videos/02.mp4',
+    '/videos/03.mp4',
+    '/videos/04.mp4',
+    '/videos/05.mp4',
+    '/videos/06.mp4',
+    '/videos/07.mp4',
+    '/videos/08.mp4'
   ];
 
   return (

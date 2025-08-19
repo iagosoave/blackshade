@@ -1,144 +1,111 @@
-// components/BackgroundVideo.jsx - VERSÃO AVANÇADA
-import React, { useState, useRef, useEffect } from 'react';
+// src/components/BackgroundVideo.jsx
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 
-/**
- * BackgroundVideo Avançado - Double Buffer para transições instantâneas
- * Mantém 2 elementos de vídeo e alterna entre eles
- */
 export default function BackgroundVideo({ videos, opacity = 1, loop = false }) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [activePlayer, setActivePlayer] = useState(1);
-  
-  // Dois players de vídeo
-  const video1Ref = useRef(null);
-  const video2Ref = useRef(null);
-  
-  // Estado de carregamento
-  const [isReady, setIsReady] = useState(false);
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+  const videoRef = useRef(null);
+  const nextVideoUrl = useRef(null);
 
-  // Inicialização
+  // Pré-carregar próximo vídeo
   useEffect(() => {
-    if (!video1Ref.current || !video2Ref.current) return;
-
-    const setupVideo = (video) => {
-      video.muted = true;
-      video.playsInline = true;
-      video.setAttribute('webkit-playsinline', 'true');
-      video.preload = 'auto';
-      video.style.position = 'absolute';
-      video.style.top = '0';
-      video.style.left = '0';
-      video.style.width = '100%';
-      video.style.height = '100%';
-      video.style.objectFit = 'cover';
-    };
-
-    setupVideo(video1Ref.current);
-    setupVideo(video2Ref.current);
-
-    // Carregar primeiro vídeo
-    video1Ref.current.src = videos[0];
+    if (videos.length <= 1) return;
     
-    // Pré-carregar segundo vídeo se existir
-    if (videos.length > 1) {
-      video2Ref.current.src = videos[1];
-      video2Ref.current.load();
+    const nextIndex = (currentVideoIndex + 1) % videos.length;
+    nextVideoUrl.current = videos[nextIndex];
+    
+    // Pré-carregar via link element
+    const link = document.createElement('link');
+    link.rel = 'prefetch';
+    link.as = 'video';
+    link.href = nextVideoUrl.current;
+    document.head.appendChild(link);
+    
+    return () => {
+      if (document.head.contains(link)) {
+        document.head.removeChild(link);
+      }
+    };
+  }, [currentVideoIndex, videos]);
+
+  const handleVideoEnd = useCallback(() => {
+    if (!loop && currentVideoIndex === videos.length - 1) return;
+    
+    setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % videos.length);
+  }, [videos.length, loop, currentVideoIndex]);
+
+  useEffect(() => {
+    const videoElement = videoRef.current;
+    if (!videoElement) return;
+
+    // Configurações essenciais
+    videoElement.muted = true;
+    videoElement.playsInline = true;
+    videoElement.setAttribute('webkit-playsinline', 'true');
+    videoElement.preload = 'auto';
+    
+    // Loop para vídeo único
+    if (videos.length === 1 && loop) {
+      videoElement.loop = true;
+    } else {
+      videoElement.loop = false;
     }
 
-    // Iniciar reprodução quando pronto
-    video1Ref.current.addEventListener('canplaythrough', () => {
-      video1Ref.current.play().catch(console.log);
-      setIsReady(true);
-    }, { once: true });
-
-    video1Ref.current.load();
-  }, [videos]);
-
-  // Gerenciar transições
-  useEffect(() => {
-    if (!isReady) return;
-
-    const currentVideo = activePlayer === 1 ? video1Ref.current : video2Ref.current;
-    const nextVideo = activePlayer === 1 ? video2Ref.current : video1Ref.current;
-
-    if (!currentVideo || !nextVideo) return;
-
-    const handleVideoEnd = () => {
-      if (!loop && currentIndex === videos.length - 1) return;
-
-      const nextIndex = (currentIndex + 1) % videos.length;
-      
-      // Preparar próximo vídeo
-      nextVideo.src = videos[nextIndex];
-      
-      // Quando próximo vídeo estiver pronto, trocar
-      nextVideo.addEventListener('canplay', () => {
-        // Trocar vídeos instantaneamente
-        currentVideo.style.display = 'none';
-        nextVideo.style.display = 'block';
-        nextVideo.play().catch(console.log);
+    // Função para tocar o vídeo
+    const playVideo = async () => {
+      try {
+        await videoElement.play();
+      } catch (err) {
+        console.log('Autoplay bloqueado, aguardando interação');
         
-        // Atualizar estados
-        setActivePlayer(activePlayer === 1 ? 2 : 1);
-        setCurrentIndex(nextIndex);
+        const handleFirstInteraction = () => {
+          videoElement.play();
+          document.removeEventListener('click', handleFirstInteraction);
+          document.removeEventListener('touchstart', handleFirstInteraction);
+        };
         
-        // Resetar vídeo anterior
-        currentVideo.currentTime = 0;
-        
-        // Pré-carregar próximo
-        if (videos.length > 2) {
-          const futureIndex = (nextIndex + 1) % videos.length;
-          setTimeout(() => {
-            currentVideo.src = videos[futureIndex];
-            currentVideo.load();
-          }, 100);
-        }
-      }, { once: true });
-
-      nextVideo.load();
+        document.addEventListener('click', handleFirstInteraction, { once: true });
+        document.addEventListener('touchstart', handleFirstInteraction, { once: true });
+      }
     };
 
-    // Se apenas um vídeo e loop ativado
-    if (videos.length === 1 && loop) {
-      currentVideo.loop = true;
-    } else {
-      currentVideo.addEventListener('ended', handleVideoEnd);
-      
-      return () => {
-        currentVideo.removeEventListener('ended', handleVideoEnd);
-      };
+    // Atualizar source e tocar
+    videoElement.src = videos[currentVideoIndex];
+    
+    const handleCanPlay = () => {
+      playVideo();
+    };
+
+    const handleEnded = () => {
+      handleVideoEnd();
+    };
+
+    // Adicionar listeners
+    videoElement.addEventListener('canplay', handleCanPlay);
+    
+    if (videos.length > 1 || !loop) {
+      videoElement.addEventListener('ended', handleEnded);
     }
-  }, [activePlayer, currentIndex, videos, loop, isReady]);
+
+    // Cleanup
+    return () => {
+      videoElement.removeEventListener('canplay', handleCanPlay);
+      videoElement.removeEventListener('ended', handleEnded);
+    };
+  }, [currentVideoIndex, videos, loop, handleVideoEnd]);
 
   return (
     <div className="absolute inset-0 w-full h-full overflow-hidden bg-black">
       <video
-        ref={video1Ref}
-        style={{
-          display: activePlayer === 1 ? 'block' : 'none',
+        ref={videoRef}
+        className="absolute inset-0 w-full h-full object-cover"
+        style={{ 
           opacity,
           pointerEvents: 'none'
         }}
         muted
         playsInline
+        autoPlay
       />
-      <video
-        ref={video2Ref}
-        style={{
-          display: activePlayer === 2 ? 'block' : 'none',
-          opacity,
-          pointerEvents: 'none'
-        }}
-        muted
-        playsInline
-      />
-      
-      {/* Indicador de carregamento */}
-      {!isReady && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-        </div>
-      )}
     </div>
   );
 }
