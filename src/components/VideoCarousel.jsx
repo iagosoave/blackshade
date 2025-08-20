@@ -11,12 +11,12 @@ export default function VideoCarousel() {
   const videos = [
     '/videos/01.webm',
     '/videos/02.webm',
-    '/videos/03.mp4',
-    '/videos/04.mp4',
-    '/videos/05.mp4',
-    '/videos/06.mp4',
-    '/videos/07.mp4',
-    '/videos/08.mp4'
+    '/videos/03.webm',
+    '/videos/04.webm',
+    '/videos/05.webm',
+    '/videos/06.webm',
+    '/videos/07.webm',
+    '/videos/08.webm'
   ];
 
   const handleVideoEnded = () => {
