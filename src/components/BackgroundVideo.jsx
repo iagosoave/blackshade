@@ -20,7 +20,7 @@ export default function BackgroundVideo() {
     { url: '/videos/08.mp4', poster: null }
   ];
 
-  // SOLUÇÃO 1: Detectar interação do usuário primeiro
+  // Detectar interação do usuário
   useEffect(() => {
     const handleInteraction = () => {
       setHasInteracted(true);
@@ -40,21 +40,18 @@ export default function BackgroundVideo() {
     };
   }, []);
 
-  // SOLUÇÃO 2: Pré-carregar o primeiro vídeo completamente antes de mostrar
+  // Pré-carregar o primeiro vídeo
   useEffect(() => {
     const firstVideo = videoRefs.current[0];
     if (!firstVideo) return;
 
-    // Configura o primeiro vídeo
     firstVideo.src = videos[0].url;
     firstVideo.preload = 'auto';
     
-    // Espera o vídeo estar REALMENTE pronto
     const handleCanPlayThrough = () => {
       loadedVideos.current.add(0);
       setIsReady(true);
       
-      // Tenta tocar com delay para garantir
       setTimeout(() => {
         firstVideo.play().catch(() => {
           console.log('Aguardando interação do usuário...');
@@ -62,7 +59,6 @@ export default function BackgroundVideo() {
       }, 100);
     };
 
-    // Usa canplaythrough em vez de canplay para garantir buffer suficiente
     firstVideo.addEventListener('canplaythrough', handleCanPlayThrough, { once: true });
 
     return () => {
@@ -70,7 +66,7 @@ export default function BackgroundVideo() {
     };
   }, [videos]);
 
-  // SOLUÇÃO 3: Gerenciamento inteligente de memória com delay
+  // Gerenciamento de vídeos com técnica Iconoclast
   useEffect(() => {
     if (!isReady) return;
 
@@ -82,7 +78,6 @@ export default function BackgroundVideo() {
       if (!video) return;
       
       if (toLoad.includes(index)) {
-        // Carrega vídeos necessários com delay progressivo
         setTimeout(() => {
           if (!video.src || video.src === '') {
             video.src = videos[index].url;
@@ -95,15 +90,14 @@ export default function BackgroundVideo() {
           }
           
           if (index === currentIndex) {
-            // Mostra e toca o vídeo atual
+            // Configurações críticas para velocidade
             video.style.opacity = '1';
             video.style.zIndex = '10';
+            video.style.transition = 'opacity 1ms linear'; // INSTANTÂNEO!
             
-            // Só toca se já carregou ou se usuário já interagiu
             if (loadedVideos.current.has(index) || hasInteracted) {
               video.currentTime = 0;
               video.play().catch(() => {
-                // Se falhar, espera interação
                 const playOnInteraction = () => {
                   video.play();
                   setHasInteracted(true);
@@ -112,15 +106,14 @@ export default function BackgroundVideo() {
               });
             }
           } else {
-            // Esconde os adjacentes
             video.style.opacity = '0';
             video.style.zIndex = '0';
+            video.style.transition = 'opacity 1ms linear';
             video.pause();
           }
-        }, index === currentIndex ? 0 : 500); // Delay para não congestionar
+        }, index === currentIndex ? 0 : 500);
         
       } else {
-        // Limpa vídeos distantes após um delay
         setTimeout(() => {
           if (video.src && video.src !== '') {
             video.pause();
@@ -135,7 +128,7 @@ export default function BackgroundVideo() {
     });
   }, [currentIndex, videos, isReady, hasInteracted]);
   
-  // SOLUÇÃO 4: Transição mais suave entre vídeos
+  // Transição entre vídeos
   useEffect(() => {
     if (!isReady) return;
     
@@ -143,24 +136,13 @@ export default function BackgroundVideo() {
     if (!currentVideo) return;
     
     const handleEnded = () => {
-      // Pré-carrega o próximo antes de trocar
-      const nextIndex = (currentIndex + 1) % videos.length;
-      const nextVideo = videoRefs.current[nextIndex];
+      // Transição INSTANTÂNEA
+      currentVideo.style.transition = 'opacity 1ms linear';
+      currentVideo.style.opacity = '0';
       
-      if (nextVideo && loadedVideos.current.has(nextIndex)) {
-        // Próximo já está pronto, troca suave
-        currentVideo.style.transition = 'opacity 0.3s ease-out';
-        currentVideo.style.opacity = '0';
-        
-        setTimeout(() => {
-          setCurrentIndex(nextIndex);
-        }, 300);
-      } else {
-        // Próximo ainda não está pronto, espera um pouco
-        setTimeout(() => {
-          setCurrentIndex(nextIndex);
-        }, 500);
-      }
+      setTimeout(() => {
+        setCurrentIndex((prev) => (prev + 1) % videos.length);
+      }, 10); // Apenas 10ms de delay
     };
     
     currentVideo.addEventListener('ended', handleEnded);
@@ -169,7 +151,7 @@ export default function BackgroundVideo() {
     };
   }, [currentIndex, videos.length, isReady]);
 
-  // SOLUÇÃO 5: Fallback para conexões lentas - toca após 3 segundos mesmo se não carregou tudo
+  // Fallback para conexões lentas
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (!isReady) {
@@ -183,12 +165,12 @@ export default function BackgroundVideo() {
 
   return (
     <div className="fixed inset-0 w-full h-full overflow-hidden bg-black">
-      {/* Placeholder enquanto carrega (opcional - pode adicionar uma imagem) */}
+      {/* Tela preta enquanto carrega (sem spinner) */}
       {!isReady && (
         <div className="absolute inset-0 bg-black z-30" />
       )}
       
-      {/* 8 elementos de vídeo */}
+      {/* 8 elementos de vídeo com configurações otimizadas */}
       {videos.map((video, index) => (
         <video
           key={index}
@@ -197,19 +179,16 @@ export default function BackgroundVideo() {
           style={{
             opacity: index === 0 && isReady ? '1' : '0',
             zIndex: index === 0 ? '10' : '0',
-            transition: 'opacity 0.5s ease-in-out',
+            transition: 'opacity 1ms linear', // CRÍTICO: 1ms em vez de 500ms!
             willChange: 'opacity'
           }}
           poster={video.poster}
           playsInline
-          muted
-          autoPlay={false}
+          muted // CRÍTICO: sem isso não funciona autoplay!
+          autoPlay // IMPORTANTE: ativar autoplay
           preload="none"
           disablePictureInPicture
           controlsList="nodownload nofullscreen noremoteplayback"
-          webkit-playsinline="true"
-          x5-video-player-type="h5"
-          x5-video-player-fullscreen="false"
         />
       ))}
     </div>
