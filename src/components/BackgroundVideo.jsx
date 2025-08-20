@@ -1,10 +1,12 @@
 // src/components/IconoclastVideoSystem.jsx
 import React, { useState, useRef, useEffect } from 'react';
 
-export default function  BackgroundVideo() {
+export default function BackgroundVideo() {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isFirstLoad, setIsFirstLoad] = useState(true);
+  const [isReady, setIsReady] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(false);
   const videoRefs = useRef([]);
+  const loadedVideos = useRef(new Set());
   
   // Seus 8 vídeos
   const videos = [
@@ -17,9 +19,61 @@ export default function  BackgroundVideo() {
     { url: '/videos/07.mp4', poster: null },
     { url: '/videos/08.mp4', poster: null }
   ];
-  
-  // TÉCNICA ICONOCLAST: Carrega apenas 3 vídeos por vez
+
+  // SOLUÇÃO 1: Detectar interação do usuário primeiro
   useEffect(() => {
+    const handleInteraction = () => {
+      setHasInteracted(true);
+      document.removeEventListener('click', handleInteraction);
+      document.removeEventListener('touchstart', handleInteraction);
+      document.removeEventListener('scroll', handleInteraction);
+    };
+
+    document.addEventListener('click', handleInteraction, { once: true });
+    document.addEventListener('touchstart', handleInteraction, { once: true });
+    document.addEventListener('scroll', handleInteraction, { once: true });
+
+    return () => {
+      document.removeEventListener('click', handleInteraction);
+      document.removeEventListener('touchstart', handleInteraction);
+      document.removeEventListener('scroll', handleInteraction);
+    };
+  }, []);
+
+  // SOLUÇÃO 2: Pré-carregar o primeiro vídeo completamente antes de mostrar
+  useEffect(() => {
+    const firstVideo = videoRefs.current[0];
+    if (!firstVideo) return;
+
+    // Configura o primeiro vídeo
+    firstVideo.src = videos[0].url;
+    firstVideo.preload = 'auto';
+    
+    // Espera o vídeo estar REALMENTE pronto
+    const handleCanPlayThrough = () => {
+      loadedVideos.current.add(0);
+      setIsReady(true);
+      
+      // Tenta tocar com delay para garantir
+      setTimeout(() => {
+        firstVideo.play().catch(() => {
+          console.log('Aguardando interação do usuário...');
+        });
+      }, 100);
+    };
+
+    // Usa canplaythrough em vez de canplay para garantir buffer suficiente
+    firstVideo.addEventListener('canplaythrough', handleCanPlayThrough, { once: true });
+
+    return () => {
+      firstVideo.removeEventListener('canplaythrough', handleCanPlayThrough);
+    };
+  }, [videos]);
+
+  // SOLUÇÃO 3: Gerenciamento inteligente de memória com delay
+  useEffect(() => {
+    if (!isReady) return;
+
     const prevIndex = (currentIndex - 1 + videos.length) % videos.length;
     const nextIndex = (currentIndex + 1) % videos.length;
     const toLoad = [prevIndex, currentIndex, nextIndex];
@@ -28,96 +82,120 @@ export default function  BackgroundVideo() {
       if (!video) return;
       
       if (toLoad.includes(index)) {
-        // CARREGA apenas os 3 vídeos necessários
-        if (!video.src || video.src === '') {
-          video.src = videos[index].url;
-          video.load();
-        }
-        
-        if (index === currentIndex) {
-          // TOCA apenas o vídeo atual
-          video.style.opacity = '1';
-          video.style.zIndex = '10';
-          
-          // Reseta e toca
-          video.currentTime = 0;
-          const playPromise = video.play();
-          
-          if (playPromise !== undefined) {
-            playPromise.catch(() => {
-              // Fallback silencioso para primeiro clique
-              if (isFirstLoad) {
-                const handleFirstClick = () => {
-                  video.play();
-                  document.removeEventListener('click', handleFirstClick);
-                  document.removeEventListener('touchstart', handleFirstClick);
-                };
-                document.addEventListener('click', handleFirstClick, { once: true });
-                document.addEventListener('touchstart', handleFirstClick, { once: true });
-                setIsFirstLoad(false);
-              }
-            });
+        // Carrega vídeos necessários com delay progressivo
+        setTimeout(() => {
+          if (!video.src || video.src === '') {
+            video.src = videos[index].url;
+            video.preload = index === currentIndex ? 'auto' : 'metadata';
+            video.load();
+            
+            video.addEventListener('canplaythrough', () => {
+              loadedVideos.current.add(index);
+            }, { once: true });
           }
-        } else {
-          // ESCONDE e PAUSA os adjacentes
-          video.style.opacity = '0';
-          video.style.zIndex = '0';
-          video.pause();
-        }
+          
+          if (index === currentIndex) {
+            // Mostra e toca o vídeo atual
+            video.style.opacity = '1';
+            video.style.zIndex = '10';
+            
+            // Só toca se já carregou ou se usuário já interagiu
+            if (loadedVideos.current.has(index) || hasInteracted) {
+              video.currentTime = 0;
+              video.play().catch(() => {
+                // Se falhar, espera interação
+                const playOnInteraction = () => {
+                  video.play();
+                  setHasInteracted(true);
+                };
+                document.addEventListener('click', playOnInteraction, { once: true });
+              });
+            }
+          } else {
+            // Esconde os adjacentes
+            video.style.opacity = '0';
+            video.style.zIndex = '0';
+            video.pause();
+          }
+        }, index === currentIndex ? 0 : 500); // Delay para não congestionar
+        
       } else {
-        // LIMPA MEMÓRIA dos vídeos distantes
-        if (video.src && video.src !== '') {
-          video.pause();
-          video.style.opacity = '0';
-          video.style.zIndex = '0';
-          // Remove source para liberar memória
-          video.removeAttribute('src');
-          video.load();
-        }
+        // Limpa vídeos distantes após um delay
+        setTimeout(() => {
+          if (video.src && video.src !== '') {
+            video.pause();
+            video.style.opacity = '0';
+            video.style.zIndex = '0';
+            video.removeAttribute('src');
+            video.load();
+            loadedVideos.current.delete(index);
+          }
+        }, 1000);
       }
     });
-  }, [currentIndex, videos, isFirstLoad]);
+  }, [currentIndex, videos, isReady, hasInteracted]);
   
-  // Avança automaticamente quando o vídeo termina
+  // SOLUÇÃO 4: Transição mais suave entre vídeos
   useEffect(() => {
+    if (!isReady) return;
+    
     const currentVideo = videoRefs.current[currentIndex];
     if (!currentVideo) return;
     
     const handleEnded = () => {
-      // Fade out suave antes de trocar
-      currentVideo.style.transition = 'opacity 0.3s ease-out';
-      currentVideo.style.opacity = '0';
+      // Pré-carrega o próximo antes de trocar
+      const nextIndex = (currentIndex + 1) % videos.length;
+      const nextVideo = videoRefs.current[nextIndex];
       
-      setTimeout(() => {
-        setCurrentIndex((prev) => (prev + 1) % videos.length);
-      }, 300);
+      if (nextVideo && loadedVideos.current.has(nextIndex)) {
+        // Próximo já está pronto, troca suave
+        currentVideo.style.transition = 'opacity 0.3s ease-out';
+        currentVideo.style.opacity = '0';
+        
+        setTimeout(() => {
+          setCurrentIndex(nextIndex);
+        }, 300);
+      } else {
+        // Próximo ainda não está pronto, espera um pouco
+        setTimeout(() => {
+          setCurrentIndex(nextIndex);
+        }, 500);
+      }
     };
     
     currentVideo.addEventListener('ended', handleEnded);
     return () => {
       currentVideo.removeEventListener('ended', handleEnded);
     };
-  }, [currentIndex, videos.length]);
+  }, [currentIndex, videos.length, isReady]);
 
-  // Pré-carrega o primeiro vídeo imediatamente
+  // SOLUÇÃO 5: Fallback para conexões lentas - toca após 3 segundos mesmo se não carregou tudo
   useEffect(() => {
-    const firstVideo = videoRefs.current[0];
-    if (firstVideo && !firstVideo.src) {
-      firstVideo.src = videos[0].url;
-      firstVideo.load();
-    }
-  }, [videos]);
+    const timeout = setTimeout(() => {
+      if (!isReady) {
+        console.log('Forçando início após 3 segundos...');
+        setIsReady(true);
+      }
+    }, 3000);
+
+    return () => clearTimeout(timeout);
+  }, [isReady]);
 
   return (
     <div className="fixed inset-0 w-full h-full overflow-hidden bg-black">
-      {/* 8 elementos de vídeo, mas só 3 carregados por vez */}
+      {/* Placeholder enquanto carrega (opcional - pode adicionar uma imagem) */}
+      {!isReady && (
+        <div className="absolute inset-0 bg-black z-30" />
+      )}
+      
+      {/* 8 elementos de vídeo */}
       {videos.map((video, index) => (
         <video
           key={index}
           ref={(el) => (videoRefs.current[index] = el)}
           className="absolute inset-0 w-full h-full object-cover"
           style={{
-            opacity: index === 0 ? '1' : '0',
+            opacity: index === 0 && isReady ? '1' : '0',
             zIndex: index === 0 ? '10' : '0',
             transition: 'opacity 0.5s ease-in-out',
             willChange: 'opacity'
@@ -127,7 +205,6 @@ export default function  BackgroundVideo() {
           muted
           autoPlay={false}
           preload="none"
-          // Otimizações de performance
           disablePictureInPicture
           controlsList="nodownload nofullscreen noremoteplayback"
           webkit-playsinline="true"
@@ -135,8 +212,6 @@ export default function  BackgroundVideo() {
           x5-video-player-fullscreen="false"
         />
       ))}
-      
-
     </div>
   );
 }
