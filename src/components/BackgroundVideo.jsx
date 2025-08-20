@@ -1,111 +1,142 @@
-// src/components/BackgroundVideo.jsx
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+// src/components/IconoclastVideoSystem.jsx
+import React, { useState, useRef, useEffect } from 'react';
 
-export default function BackgroundVideo({ videos, opacity = 1, loop = false }) {
-  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
-  const videoRef = useRef(null);
-  const nextVideoUrl = useRef(null);
-
-  // Pré-carregar próximo vídeo
+export default function  BackgroundVideo() {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
+  const videoRefs = useRef([]);
+  
+  // Seus 8 vídeos
+  const videos = [
+    { url: '/videos/01.mp4', poster: null },
+    { url: '/videos/02.mp4', poster: null },
+    { url: '/videos/03.mp4', poster: null },
+    { url: '/videos/04.mp4', poster: null },
+    { url: '/videos/05.mp4', poster: null },
+    { url: '/videos/06.mp4', poster: null },
+    { url: '/videos/07.mp4', poster: null },
+    { url: '/videos/08.mp4', poster: null }
+  ];
+  
+  // TÉCNICA ICONOCLAST: Carrega apenas 3 vídeos por vez
   useEffect(() => {
-    if (videos.length <= 1) return;
+    const prevIndex = (currentIndex - 1 + videos.length) % videos.length;
+    const nextIndex = (currentIndex + 1) % videos.length;
+    const toLoad = [prevIndex, currentIndex, nextIndex];
     
-    const nextIndex = (currentVideoIndex + 1) % videos.length;
-    nextVideoUrl.current = videos[nextIndex];
-    
-    // Pré-carregar via link element
-    const link = document.createElement('link');
-    link.rel = 'prefetch';
-    link.as = 'video';
-    link.href = nextVideoUrl.current;
-    document.head.appendChild(link);
-    
-    return () => {
-      if (document.head.contains(link)) {
-        document.head.removeChild(link);
+    videoRefs.current.forEach((video, index) => {
+      if (!video) return;
+      
+      if (toLoad.includes(index)) {
+        // CARREGA apenas os 3 vídeos necessários
+        if (!video.src || video.src === '') {
+          video.src = videos[index].url;
+          video.load();
+        }
+        
+        if (index === currentIndex) {
+          // TOCA apenas o vídeo atual
+          video.style.opacity = '1';
+          video.style.zIndex = '10';
+          
+          // Reseta e toca
+          video.currentTime = 0;
+          const playPromise = video.play();
+          
+          if (playPromise !== undefined) {
+            playPromise.catch(() => {
+              // Fallback silencioso para primeiro clique
+              if (isFirstLoad) {
+                const handleFirstClick = () => {
+                  video.play();
+                  document.removeEventListener('click', handleFirstClick);
+                  document.removeEventListener('touchstart', handleFirstClick);
+                };
+                document.addEventListener('click', handleFirstClick, { once: true });
+                document.addEventListener('touchstart', handleFirstClick, { once: true });
+                setIsFirstLoad(false);
+              }
+            });
+          }
+        } else {
+          // ESCONDE e PAUSA os adjacentes
+          video.style.opacity = '0';
+          video.style.zIndex = '0';
+          video.pause();
+        }
+      } else {
+        // LIMPA MEMÓRIA dos vídeos distantes
+        if (video.src && video.src !== '') {
+          video.pause();
+          video.style.opacity = '0';
+          video.style.zIndex = '0';
+          // Remove source para liberar memória
+          video.removeAttribute('src');
+          video.load();
+        }
       }
-    };
-  }, [currentVideoIndex, videos]);
-
-  const handleVideoEnd = useCallback(() => {
-    if (!loop && currentVideoIndex === videos.length - 1) return;
-    
-    setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % videos.length);
-  }, [videos.length, loop, currentVideoIndex]);
-
+    });
+  }, [currentIndex, videos, isFirstLoad]);
+  
+  // Avança automaticamente quando o vídeo termina
   useEffect(() => {
-    const videoElement = videoRef.current;
-    if (!videoElement) return;
-
-    // Configurações essenciais
-    videoElement.muted = true;
-    videoElement.playsInline = true;
-    videoElement.setAttribute('webkit-playsinline', 'true');
-    videoElement.preload = 'auto';
+    const currentVideo = videoRefs.current[currentIndex];
+    if (!currentVideo) return;
     
-    // Loop para vídeo único
-    if (videos.length === 1 && loop) {
-      videoElement.loop = true;
-    } else {
-      videoElement.loop = false;
-    }
-
-    // Função para tocar o vídeo
-    const playVideo = async () => {
-      try {
-        await videoElement.play();
-      } catch (err) {
-        console.log('Autoplay bloqueado, aguardando interação');
-        
-        const handleFirstInteraction = () => {
-          videoElement.play();
-          document.removeEventListener('click', handleFirstInteraction);
-          document.removeEventListener('touchstart', handleFirstInteraction);
-        };
-        
-        document.addEventListener('click', handleFirstInteraction, { once: true });
-        document.addEventListener('touchstart', handleFirstInteraction, { once: true });
-      }
-    };
-
-    // Atualizar source e tocar
-    videoElement.src = videos[currentVideoIndex];
-    
-    const handleCanPlay = () => {
-      playVideo();
-    };
-
     const handleEnded = () => {
-      handleVideoEnd();
+      // Fade out suave antes de trocar
+      currentVideo.style.transition = 'opacity 0.3s ease-out';
+      currentVideo.style.opacity = '0';
+      
+      setTimeout(() => {
+        setCurrentIndex((prev) => (prev + 1) % videos.length);
+      }, 300);
     };
-
-    // Adicionar listeners
-    videoElement.addEventListener('canplay', handleCanPlay);
     
-    if (videos.length > 1 || !loop) {
-      videoElement.addEventListener('ended', handleEnded);
-    }
-
-    // Cleanup
+    currentVideo.addEventListener('ended', handleEnded);
     return () => {
-      videoElement.removeEventListener('canplay', handleCanPlay);
-      videoElement.removeEventListener('ended', handleEnded);
+      currentVideo.removeEventListener('ended', handleEnded);
     };
-  }, [currentVideoIndex, videos, loop, handleVideoEnd]);
+  }, [currentIndex, videos.length]);
+
+  // Pré-carrega o primeiro vídeo imediatamente
+  useEffect(() => {
+    const firstVideo = videoRefs.current[0];
+    if (firstVideo && !firstVideo.src) {
+      firstVideo.src = videos[0].url;
+      firstVideo.load();
+    }
+  }, [videos]);
 
   return (
-    <div className="absolute inset-0 w-full h-full overflow-hidden bg-black">
-      <video
-        ref={videoRef}
-        className="absolute inset-0 w-full h-full object-cover"
-        style={{ 
-          opacity,
-          pointerEvents: 'none'
-        }}
-        muted
-        playsInline
-        autoPlay
-      />
+    <div className="fixed inset-0 w-full h-full overflow-hidden bg-black">
+      {/* 8 elementos de vídeo, mas só 3 carregados por vez */}
+      {videos.map((video, index) => (
+        <video
+          key={index}
+          ref={(el) => (videoRefs.current[index] = el)}
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{
+            opacity: index === 0 ? '1' : '0',
+            zIndex: index === 0 ? '10' : '0',
+            transition: 'opacity 0.5s ease-in-out',
+            willChange: 'opacity'
+          }}
+          poster={video.poster}
+          playsInline
+          muted
+          autoPlay={false}
+          preload="none"
+          // Otimizações de performance
+          disablePictureInPicture
+          controlsList="nodownload nofullscreen noremoteplayback"
+          webkit-playsinline="true"
+          x5-video-player-type="h5"
+          x5-video-player-fullscreen="false"
+        />
+      ))}
+      
+
     </div>
   );
 }
