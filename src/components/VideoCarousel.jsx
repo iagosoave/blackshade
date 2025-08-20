@@ -1,10 +1,13 @@
 // src/components/VideoCarousel.jsx
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 export default function VideoCarousel() {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const videoRef = useRef(null);
-  
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+  const [nextVideoIndex, setNextVideoIndex] = useState(1);
+  const currentVideoRef = useRef(null);
+  const nextVideoRef = useRef(null);
+  const [transitioning, setTransitioning] = useState(false);
+
   const videos = [
     '/videos/01.mp4',
     '/videos/02.mp4',
@@ -16,46 +19,59 @@ export default function VideoCarousel() {
     '/videos/08.mp4'
   ];
 
+  const handleVideoEnded = () => {
+    // Inicia a transição
+    setTransitioning(true);
+
+    // O próximo vídeo se torna o vídeo atual
+    setTimeout(() => {
+      setCurrentVideoIndex(nextVideoIndex);
+      setNextVideoIndex((nextVideoIndex + 1) % videos.length);
+      setTransitioning(false);
+    }, 500); // Duração da transição em milissegundos
+  };
+
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
+    const currentVideo = currentVideoRef.current;
+    const nextVideo = nextVideoRef.current;
 
-    // Quando terminar, vai pro próximo
-    const handleEnded = () => {
-      setCurrentIndex((prev) => (prev + 1) % videos.length);
-    };
+    if (currentVideo) {
+      currentVideo.src = videos[currentVideoIndex];
+      currentVideo.load();
+      currentVideo.oncanplay = () => {
+        currentVideo.play().catch(() => {
+          document.addEventListener('click', () => {
+            currentVideo.play();
+          }, { once: true });
+        });
+      };
+    }
 
-    video.addEventListener('ended', handleEnded);
-    return () => video.removeEventListener('ended', handleEnded);
-  }, [videos.length]);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    // Troca o vídeo
-    video.src = videos[currentIndex];
-    video.load();
-    
-    // Tenta tocar depois de carregar
-    video.oncanplay = () => {
-      video.play().catch(() => {
-        // Se não conseguir, espera clique
-        document.addEventListener('click', () => {
-          video.play();
-        }, { once: true });
-      });
-    };
-  }, [currentIndex, videos]);
+    if (nextVideo) {
+      nextVideo.src = videos[nextVideoIndex];
+      nextVideo.load();
+    }
+  }, [currentVideoIndex, nextVideoIndex, videos]);
 
   return (
-    <div className="fixed inset-0 w-full h-full bg-black">
+    <div className="fixed inset-0 w-full h-full bg-black overflow-hidden">
+      {/* Vídeo atual, com transição de opacidade */}
       <video
-        ref={videoRef}
-        className="w-full h-full object-cover"
+        ref={currentVideoRef}
+        className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ease-in-out"
+        style={{ opacity: transitioning ? 0 : 1 }}
+        muted
+        autoPlay
+        playsInline
+        onEnded={handleVideoEnded}
+      />
+      {/* Próximo vídeo, pré-carregado e inicialmente transparente */}
+      <video
+        ref={nextVideoRef}
+        className="absolute inset-0 w-full h-full object-cover"
+        style={{ opacity: transitioning ? 1 : 0 }}
         muted
         playsInline
-        preload="auto"
       />
     </div>
   );
