@@ -1,9 +1,8 @@
 // src/sections/ContactSection.jsx
 import React from 'react';
-import { motion } from 'framer-motion';
 import { FaInstagram, FaVimeoV, FaWhatsapp } from 'react-icons/fa';
 import { translations } from '../config/translations';
-import BackgroundVideo from '../components/BackgroundVideo';
+import SingleVideoBackground from '../components/SingleVideoBackground';
 
 export default function ContactSection({ language }) {
   const t = translations[language] || translations.pt;
@@ -11,27 +10,18 @@ export default function ContactSection({ language }) {
 
   return (
     <div className="min-h-screen relative">
-      {/* Vídeo de fundo - agora com path direto */}
-      <BackgroundVideo 
-        videos={['/videos/02.mp4']} 
-        opacity={0.3} 
-        loop={true}
+      {/* Vídeo de fundo simples */}
+      <SingleVideoBackground 
+        videoUrl="/videos/02.mp4" 
+        opacity={0.3}
       />
 
+      {/* Conteúdo do contato */}
       <div className="relative z-10 min-h-screen flex items-center justify-center px-6 md:px-8">
-        <motion.div
-          className="max-w-2xl w-full text-center"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
+        <div className="max-w-2xl w-full text-center">
           <div className="text-white space-y-6 md:space-y-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="text-center"
-            >
+            {/* Email */}
+            <div className="text-center">
               <p className="opacity-60 text-xs md:text-sm uppercase tracking-wider mb-1">
                 {contactData.fields.email}
               </p>
@@ -41,14 +31,10 @@ export default function ContactSection({ language }) {
               >
                 {contactData.info.email}
               </a>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="text-center"
-            >
+            {/* Gus Vargas */}
+            <div className="text-center">
               <p className="opacity-60 text-xs md:text-sm uppercase tracking-wider mb-1">
                 {contactData.fields.executiveProduction} - {contactData.info.gusVargas.nome}
               </p>
@@ -67,14 +53,10 @@ export default function ContactSection({ language }) {
               >
                 {contactData.info.gusVargas.email}
               </a>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="text-center"
-            >
+            {/* Rodrigo Sivieri */}
+            <div className="text-center">
               <p className="opacity-60 text-xs md:text-sm uppercase tracking-wider mb-1">
                 {contactData.fields.service} - {contactData.info.rodrigoSivieri.nome}
               </p>
@@ -93,14 +75,10 @@ export default function ContactSection({ language }) {
               >
                 {contactData.info.rodrigoSivieri.email}
               </a>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              className="text-center"
-            >
+            {/* Redes Sociais */}
+            <div className="text-center">
               <p className="opacity-60 text-xs md:text-sm uppercase tracking-wider mb-3">
                 {contactData.fields.socialMedia}
               </p>
@@ -124,23 +102,19 @@ export default function ContactSection({ language }) {
                   <FaVimeoV size={32} />
                 </a>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-              className="text-center"
-            >
+            {/* Endereço */}
+            <div className="text-center">
               <p className="opacity-60 text-xs md:text-sm uppercase tracking-wider mb-1">
                 {contactData.fields.address}
               </p>
               <p className="text-base md:text-lg">
                 {contactData.info.address}
               </p>
-            </motion.div>
+            </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );
