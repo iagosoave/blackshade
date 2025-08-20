@@ -1,10 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 export default function VideoCarousel() {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
-  const currentVideoRef = useRef(null);
-  const nextVideoRef = useRef(null);
-  const containerRef = useRef(null);
+  const videoRefs = useRef({});
   
   const videos = [
     '/videos/01.webm',
@@ -17,132 +15,139 @@ export default function VideoCarousel() {
     '/videos/08.webm'
   ];
 
-  // Pré-carrega todos os vídeos na memória
-  useEffect(() => {
-    videos.forEach(src => {
-      const link = document.createElement('link');
-      link.rel = 'prefetch';
-      link.as = 'video';
-      link.href = src;
-      document.head.appendChild(link);
-    });
-  }, []);
+  // Manipula o fim do vídeo
+  const handleVideoEnded = useCallback(() => {
+    setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % videos.length);
+  }, [videos.length]);
 
+  // Garante autoplay e prepara próximo vídeo
   useEffect(() => {
-    const currentVideo = currentVideoRef.current;
-    const nextVideo = nextVideoRef.current;
-    if (!currentVideo || !nextVideo) return;
-
-    // Carrega o vídeo atual
-    currentVideo.src = videos[currentVideoIndex];
-    currentVideo.load();
-    
-    // Pré-carrega o próximo vídeo
+    // Pega referências dos vídeos atual e próximo
+    const currentVideo = videoRefs.current[currentVideoIndex];
     const nextIndex = (currentVideoIndex + 1) % videos.length;
-    nextVideo.src = videos[nextIndex];
-    nextVideo.load();
-    
-    // Toca o vídeo atual assim que possível
-    const playCurrentVideo = () => {
-      currentVideo.play().catch(() => {
-        // Se autoplay for bloqueado, espera clique do usuário
-        const handleClick = () => {
-          currentVideo.play();
-          nextVideo.play().then(() => nextVideo.pause());
-        };
-        document.addEventListener('click', handleClick, { once: true });
-      });
-    };
+    const nextVideo = videoRefs.current[nextIndex];
 
-    // Usa o evento com mais chance de sucesso para começar rapidamente
-    if (currentVideo.readyState >= 3) {
-      playCurrentVideo();
-    } else {
-      currentVideo.addEventListener('canplay', playCurrentVideo, { once: true });
-    }
-
-    // Pré-carrega e pausa o próximo vídeo
-    const preloadNext = () => {
-      nextVideo.play().then(() => {
-        nextVideo.pause();
-        nextVideo.currentTime = 0;
-      }).catch(() => {});
-    };
-    
-    nextVideo.addEventListener('canplay', preloadNext, { once: true });
-  }, [currentVideoIndex, videos]);
-
-  const handleVideoEnded = () => {
-    const nextIndex = (currentVideoIndex + 1) % videos.length;
-    
-    // Troca os vídeos instantaneamente
-    currentVideoRef.current.style.display = 'none';
-    nextVideoRef.current.style.display = 'block';
-    nextVideoRef.current.play();
-    
-    // Atualiza o índice após um pequeno delay para preparar o próximo
-    setTimeout(() => {
-      setCurrentVideoIndex(nextIndex);
-      // Reseta a visibilidade para o próximo ciclo
-      currentVideoRef.current.style.display = 'block';
-      nextVideoRef.current.style.display = 'none';
-    }, 50);
-  };
-
-  // Pré-carrega próximos vídeos quando o atual estiver na metade
-  useEffect(() => {
-    const video = currentVideoRef.current;
-    if (!video) return;
-
-    const handleTimeUpdate = () => {
-      if (video.currentTime > video.duration * 0.5) {
-        // Garante que os próximos 2 vídeos estejam carregados
-        const next1 = (currentVideoIndex + 1) % videos.length;
-        const next2 = (currentVideoIndex + 2) % videos.length;
+    // Função para iniciar o vídeo atual
+    const playCurrentVideo = async () => {
+      if (!currentVideo) return;
+      
+      try {
+        // Remove o currentTime para evitar pulos
+        currentVideo.currentTime = 0;
+        await currentVideo.play();
+      } catch (error) {
+        console.log('Autoplay bloqueado, aguardando interação do usuário');
         
-        // Cria elementos invisíveis para pré-carregar
-        [next1, next2].forEach(idx => {
-          const preloadVideo = document.createElement('video');
-          preloadVideo.src = videos[idx];
-          preloadVideo.load();
-        });
+        // Aguarda clique do usuário
+        const handleUserInteraction = async () => {
+          try {
+            if (currentVideo) await currentVideo.play();
+            // Prepara o próximo vídeo também
+            if (nextVideo) {
+              await nextVideo.play();
+              nextVideo.pause();
+              nextVideo.currentTime = 0;
+            }
+          } catch (e) {
+            console.error('Erro ao iniciar vídeo:', e);
+          }
+        };
+        
+        document.addEventListener('click', handleUserInteraction, { once: true });
+        document.addEventListener('touchstart', handleUserInteraction, { once: true });
       }
     };
 
-    video.addEventListener('timeupdate', handleTimeUpdate);
-    return () => video.removeEventListener('timeupdate', handleTimeUpdate);
-  }, [currentVideoIndex, videos]);
+    // Função para preparar o próximo vídeo
+    const prepareNextVideo = async () => {
+      if (!nextVideo) return;
+      
+      try {
+        nextVideo.load();
+        // Pequeno delay antes de tentar o play/pause para buffering
+        setTimeout(async () => {
+          if (nextVideo.readyState >= 3) {
+            try {
+              await nextVideo.play();
+              nextVideo.pause();
+              nextVideo.currentTime = 0;
+            } catch (e) {
+              // Silently fail - não é crítico
+            }
+          }
+        }, 500);
+      } catch (e) {
+        console.log('Erro ao preparar próximo vídeo:', e);
+      }
+    };
+
+    // Inicia o vídeo atual
+    if (currentVideo) {
+      if (currentVideo.readyState >= 3) {
+        playCurrentVideo();
+      } else {
+        const handleCanPlay = () => playCurrentVideo();
+        currentVideo.addEventListener('canplay', handleCanPlay, { once: true });
+        
+        // Cleanup
+        return () => {
+          if (currentVideo) {
+            currentVideo.removeEventListener('canplay', handleCanPlay);
+          }
+        };
+      }
+    }
+
+    // Prepara o próximo vídeo com um pequeno delay
+    const prepareTimeout = setTimeout(prepareNextVideo, 100);
+
+    return () => {
+      clearTimeout(prepareTimeout);
+    };
+  }, [currentVideoIndex, videos.length]);
 
   return (
-    <div ref={containerRef} className="fixed inset-0 w-full h-full bg-black overflow-hidden">
-      {/* Vídeo atual */}
-      <video
-        ref={currentVideoRef}
-        className="absolute inset-0 w-full h-full object-cover"
-        muted
-        playsInline
-        autoPlay
-        preload="auto"
-        onEnded={handleVideoEnded}
-        style={{ display: 'block' }}
-      />
+    <div className="fixed inset-0 w-full h-full bg-black overflow-hidden">
+      {videos.map((src, index) => {
+        const isActive = index === currentVideoIndex;
+        const isNext = index === (currentVideoIndex + 1) % videos.length;
+        const isPrevious = index === (currentVideoIndex - 1 + videos.length) % videos.length;
+        
+        return (
+          <video
+            key={`video-${index}-${src}`}
+            ref={el => {
+              if (el) videoRefs.current[index] = el;
+            }}
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{
+              display: isActive ? 'block' : 'none',
+              opacity: isActive ? 1 : 0,
+              transition: 'opacity 0.3s ease-in-out'
+            }}
+            src={src}
+            muted
+            playsInline
+            autoPlay={false} // Controlamos manualmente
+            preload={isActive || isNext ? 'auto' : isPrevious ? 'metadata' : 'none'}
+            onEnded={isActive ? handleVideoEnded : undefined}
+            onError={(e) => {
+              console.error(`Erro no vídeo ${index}:`, e);
+              if (isActive) {
+                // Pula para o próximo em caso de erro
+                handleVideoEnded();
+              }
+            }}
+          />
+        );
+      })}
       
-      {/* Próximo vídeo (pré-carregado e escondido) */}
-      <video
-        ref={nextVideoRef}
-        className="absolute inset-0 w-full h-full object-cover"
-        muted
-        playsInline
-        preload="auto"
-        style={{ display: 'none' }}
-      />
-      
-      {/* Fallback com loading indicator sutil */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" 
-             style={{ display: 'none' }} 
-             id="loader" />
-      </div>
+      {/* Debug info - remover em produção */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="absolute bottom-4 left-4 text-white text-xs z-20 bg-black/50 p-2 rounded">
+          Vídeo: {currentVideoIndex + 1}/{videos.length}
+        </div>
+      )}
     </div>
   );
 }
