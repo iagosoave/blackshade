@@ -10,7 +10,7 @@ export default function VideoCarousel() {
 
   const videos = [
     '/videos/01.webm',
-    '/videos/02.mp4',
+    '/videos/02.webm',
     '/videos/03.mp4',
     '/videos/04.mp4',
     '/videos/05.mp4',
