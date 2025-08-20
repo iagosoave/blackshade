@@ -9,7 +9,7 @@ export default function VideoCarousel() {
   const [transitioning, setTransitioning] = useState(false);
 
   const videos = [
-    '/videos/01.mp4',
+    '/videos/01.webm',
     '/videos/02.mp4',
     '/videos/03.mp4',
     '/videos/04.mp4',
