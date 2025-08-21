@@ -30,7 +30,7 @@ export default function DirectorsList({ directors, onSelectDirector }) {
       <div className="absolute inset-0 w-full h-full">
         <img
           // Referencia a imagem diretamente da pasta public
-          src="/imagens/background.avif"
+          src="/imagens/background.webp"
           alt="Imagem de fundo de diretores de cinema"
           className="w-full h-full object-cover"
           loading="eager" // Indica para o navegador carregar a imagem imediatamente

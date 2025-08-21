@@ -12,7 +12,7 @@ export default function ContactSection({ language }) {
     <div className="min-h-screen relative">
       {/* Vídeo de fundo simples */}
       <SingleVideoBackground 
-        videoUrl="/videos/02.mp4" 
+        videoUrl="/videos/02.webm" 
         opacity={0.3}
       />
 

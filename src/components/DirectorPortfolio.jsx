@@ -60,8 +60,8 @@ export default function DirectorPortfolio({ director, onBack, loading, onVideoOp
       {/* Container com scroll para todo o conteúdo */}
       <div className="h-screen overflow-y-auto relative">
         
-        {/* Botão voltar */}
-        <div className="absolute top-6 right-16 z-50">
+        {/* Botão voltar - melhor alinhado no canto direito */}
+        <div className="absolute top-6 right-6 z-50">
           <button
             className="text-white text-sm tracking-wider hover:opacity-70 flex items-center gap-2 px-4 py-2 border border-white/20 rounded-full transition-all hover:border-white/40"
             onClick={onBack}
@@ -105,7 +105,7 @@ export default function DirectorPortfolio({ director, onBack, loading, onVideoOp
             <div className="absolute inset-0 w-full h-full">
               <img
                 // Caminho corrigido para a imagem na pasta public/imagens
-                src="/imagens/backgroundbio.png"
+                src="/imagens/backgroundbio.webp"
                 alt="Imagem de fundo da biografia"
                 className="w-full h-full object-cover"
                 loading="eager" // Carrega a imagem imediatamente
