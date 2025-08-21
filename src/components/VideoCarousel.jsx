@@ -26,48 +26,95 @@ export default function VideoCarousel() {
     video.src = videos[currentVideoIndex];
     video.load();
     
-    // Configura próximo vídeo
+    // Pré-carrega próximo vídeo
     const nextIndex = (currentVideoIndex + 1) % videos.length;
     nextVideo.src = videos[nextIndex];
     nextVideo.load();
     
-    // Toca o vídeo atual
+    // Configurações para melhor performance
+    video.preload = 'auto';
+    nextVideo.preload = 'metadata';
+    
+    // Função para tocar vídeo
     const playVideo = () => {
-      video.play().catch(() => {
-        // Se autoplay falhar, espera clique
-        document.addEventListener('click', () => {
+      // Força reinício do vídeo para evitar travamentos
+      video.currentTime = 0;
+      
+      video.play().catch((error) => {
+        console.warn('Erro ao reproduzir vídeo:', error);
+        // Fallback: espera interação do usuário
+        const handleInteraction = () => {
           video.play();
-        }, { once: true });
+          document.removeEventListener('click', handleInteraction);
+          document.removeEventListener('touchstart', handleInteraction);
+        };
+        document.addEventListener('click', handleInteraction, { once: true });
+        document.addEventListener('touchstart', handleInteraction, { once: true });
       });
     };
     
-    // Inicia quando estiver pronto
+    // Aguarda o vídeo estar pronto
     if (video.readyState >= 3) {
       playVideo();
     } else {
-      video.addEventListener('canplay', playVideo, { once: true });
+      video.addEventListener('loadeddata', playVideo, { once: true });
     }
     
-  }, [currentVideoIndex]);
+  }, [currentVideoIndex, videos]);
 
   const handleVideoEnded = () => {
-    const nextIndex = (currentVideoIndex + 1) % videos.length;
     const video = videoRef.current;
     const nextVideo = nextVideoRef.current;
     
-    // Troca rápida
+    if (!video || !nextVideo) return;
+    
+    // Pausa vídeo atual para liberar recursos
+    video.pause();
+    
+    // Troca imediata - sem animação complexa
+    const nextIndex = (currentVideoIndex + 1) % videos.length;
+    
+    // Mostra próximo vídeo
     nextVideo.style.display = 'block';
-    nextVideo.play();
+    nextVideo.currentTime = 0;
+    nextVideo.play().catch(() => {
+      // Se falhar, tenta novamente após delay
+      setTimeout(() => nextVideo.play(), 100);
+    });
+    
+    // Esconde vídeo atual
     video.style.display = 'none';
     
     // Atualiza estado
     setCurrentVideoIndex(nextIndex);
     
-    // Reseta displays após transição
+    // Restaura displays após transição
     setTimeout(() => {
       video.style.display = 'block';
       nextVideo.style.display = 'none';
-    }, 100);
+    }, 200);
+  };
+
+  // Tratamento especial para vídeos problemáticos (01, 07, 08)
+  const handleVideoError = () => {
+    console.warn(`Erro no vídeo ${currentVideoIndex + 1}, pulando para o próximo`);
+    // Pula automaticamente para próximo vídeo em caso de erro
+    setTimeout(handleVideoEnded, 500);
+  };
+
+  const handleVideoStalled = () => {
+    const video = videoRef.current;
+    if (video) {
+      console.warn(`Vídeo ${currentVideoIndex + 1} travou, reiniciando`);
+      // Reinicia o vídeo se travar
+      video.load();
+      setTimeout(() => {
+        video.play().catch(() => {
+          // Se ainda assim falhar, pula para próximo
+          handleVideoEnded();
+        });
+      }, 300);
+    }
   };
 
   return (
@@ -77,9 +124,10 @@ export default function VideoCarousel() {
         className="absolute inset-0 w-full h-full object-cover"
         muted
         playsInline
-        autoPlay
-        preload="auto"
         onEnded={handleVideoEnded}
+        onError={handleVideoError}
+        onStalled={handleVideoStalled}
+        onWaiting={handleVideoStalled}
       />
       
       <video
@@ -88,7 +136,6 @@ export default function VideoCarousel() {
         style={{ display: 'none' }}
         muted
         playsInline
-        preload="auto"
       />
     </div>
   );
