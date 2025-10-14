@@ -16,7 +16,7 @@ export default function LanguageSwitcher({ language, onChange }) {
       >
         PT
       </button>
-      <span className="text-gray-500">//</span>
+      <span className="text-gray-500">/</span>
       <button
         className={`text-sm tracking-wider ${language === 'en' ? 'text-white' : 'text-gray-500'}`}
         onClick={() => onChange('en')}

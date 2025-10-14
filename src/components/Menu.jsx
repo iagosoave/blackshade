@@ -9,11 +9,10 @@ export default function Menu({ language, activeModal }) {
   const t = translations[language] || translations.pt;
 
   const menuItems = [
-    { label: t.menu.about, key: 'about', path: '/sobre' },
-    { label: t.menu.directors, key: 'directors', path: '/diretores' },
-    { label: t.menu.cosmos, key: 'cosmos', path: '/cosmos' },
-    { label: t.menu.contact, key: 'contact', path: '/contato' }
-  ];
+  { label: t.menu.about, key: 'about', path: '/sobre' },
+  { label: t.menu.directors, key: 'directors', path: '/diretores' },
+  { label: t.menu.contact, key: 'contact', path: '/contato' }
+];
 
   const handleItemClick = (item) => {
     navigate(item.path);

@@ -23,10 +23,20 @@ export default function AboutPage({ language }) {
         duration: 0.4
       }}
     >
-      <div className="absolute inset-0 bg-black bg-opacity-90 backdrop-blur-sm" />
+      {/* Imagem de fundo - fixa na tela inteira */}
+      <div className="fixed inset-0 z-0">
+        <img
+          src="/imagens/back_about.webp"
+          alt="Background About"
+          className="w-full h-full object-cover"
+          loading="eager"
+        />
+        {/* Overlay opcional se quiser escurecer um pouco */}
+        <div className="absolute inset-0 " />
+      </div>
       
       <motion.div
-        className="relative w-full h-full overflow-hidden"
+        className="relative w-full h-full overflow-hidden z-10"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2, duration: 0.3 }}
