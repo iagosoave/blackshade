@@ -108,14 +108,7 @@ export default function ContactSection({ language }) {
             </div>
 
             {/* Endereço */}
-            <div className="text-center">
-              <p className="opacity-60 text-[10px] md:text-xs uppercase tracking-wider mb-1 whitespace-nowrap">
-                {contactData.fields.address}
-              </p>
-              <p className="text-sm md:text-base whitespace-nowrap">
-                {contactData.info.address}
-              </p>
-            </div>
+           
           </div>
         </div>
       </div>

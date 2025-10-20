@@ -2,32 +2,69 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import DirectorPortfolio from '../components/DirectorPortfolio';
-import useContentful from '../hooks/useContentful'; // CORRIGIDO: hocks -> hooks
 
 export default function DirectorDetailPage({ language }) {
   const { directorId } = useParams();
   const navigate = useNavigate();
   const [isVideoOpen, setIsVideoOpen] = useState(false);
 
-  // Mapear o ID para o nome do diretor
+  // Dados mockados dos diretores com seus vídeos do Vimeo
   const directorsMap = {
-    'alice-demier': { id: 'alice-demier', name: 'Alice Demier' },
-    'gustavo-vargas': { id: 'gustavo-vargas', name: 'Gus Vargas' },
-    'rafa-rocha': { id: 'rafa-rocha', name: 'Rafa Rocha' },
-    'renata-massetti': { id: 'renata-massetti', name: 'Renata Massetti' }
+    'alice-demier': {
+      id: 'alice-demier',
+      name: 'Alice Demier',
+      portfolio: [
+        {
+          id: 'alice-1',
+          title: 'ALICE DEMIER',
+          thumbnail: '/imagens/alice.png',
+          videoUrl: 'https://vimeo.com/1127911077',
+          description: 'Trabalho de Alice Demier'
+        }
+      ]
+    },
+    'gustavo-vargas': {
+      id: 'gustavo-vargas',
+      name: 'Gus Vargas',
+      portfolio: [
+        {
+          id: 'gus-1',
+          title: 'GUS VARGAS',
+          thumbnail: '/imagens/gus.png',
+          videoUrl: 'https://vimeo.com/1127916716',
+          description: 'Trabalho de Gus Vargas'
+        }
+      ]
+    },
+    'rafa-rocha': {
+      id: 'rafa-rocha',
+      name: 'Rafa Rocha',
+      portfolio: [
+        {
+          id: 'rafa-1',
+          title: 'RAFA ROCHA',
+          thumbnail: '/imagens/rafa.png',
+          videoUrl: 'https://vimeo.com/1125659431',
+          description: 'Trabalho de Rafa Rocha'
+        }
+      ]
+    },
+    'renata-massetti': {
+      id: 'renata-massetti',
+      name: 'Renata Massetti',
+      portfolio: [
+        {
+          id: 'renata-1',
+          title: 'RENATA MASSETTI',
+          thumbnail: '/imagens/renata.png',
+          videoUrl: 'https://vimeo.com/1125658797',
+          description: 'Trabalho de Renata Massetti'
+        }
+      ]
+    }
   };
 
   const director = directorsMap[directorId];
-
-  // Buscar portfolio do diretor
-  const { data: portfolioData, loading } = useContentful(
-    director ? `director-${director.id}` : null
-  );
-
-  const directorWithPortfolio = director ? {
-    ...director,
-    portfolio: portfolioData || []
-  } : null;
 
   const handleBack = () => {
     navigate('/diretores');
@@ -61,9 +98,9 @@ export default function DirectorDetailPage({ language }) {
       }}
     >
       <DirectorPortfolio
-        director={directorWithPortfolio}
+        director={director}
         onBack={handleBack}
-        loading={loading}
+        loading={false}
         onVideoOpen={handleVideoOpen}
         language={language}
       />

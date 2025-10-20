@@ -3,9 +3,6 @@ import { motion } from 'framer-motion';
 import VideoPopup from './VideoPopup';
 import { translations } from '../config/translations';
 
-// Remova a importação da imagem.
-// Ela está na pasta public e é acessada via URL.
-
 // Componente de item do portfolio com memoização
 const PortfolioItem = memo(({ item, index, onClick }) => (
   <motion.div
@@ -23,16 +20,32 @@ const PortfolioItem = memo(({ item, index, onClick }) => (
         className="w-full h-full object-cover"
         loading="lazy"
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/30 to-black/60" />
+      {/* Overlay mais suave - apenas 20% de opacidade */}
+      <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-all duration-300" />
     </div>
 
+    {/* Título posicionado no centro com animação minimalista */}
     <div className="absolute inset-0 flex items-center justify-center p-4">
-      <h3 
-        className="text-white text-xl md:text-2xl tracking-wider text-center"
-        style={{ fontFamily: 'Impact, Haettenschweiler, Arial Black, sans-serif' }}
+      <motion.h3 
+        className="text-white text-2xl md:text-3xl tracking-wider text-center"
+        style={{ 
+          fontFamily: 'Impact, Haettenschweiler, Arial Black, sans-serif',
+          textShadow: '2px 2px 12px rgba(0, 0, 0, 0.8)'
+        }}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ 
+          duration: 0.6,
+          delay: index * 0.1 + 0.2,
+          ease: "easeOut"
+        }}
+        whileHover={{ 
+          scale: 1.05,
+          transition: { duration: 0.3 }
+        }}
       >
         {item.title}
-      </h3>
+      </motion.h3>
     </div>
   </motion.div>
 ));
@@ -101,16 +114,13 @@ export default function DirectorPortfolio({ director, onBack, loading, onVideoOp
         {/* Biografia do Diretor */}
         {director && (
           <div className="flex flex-col md:flex-row items-center md:items-start p-6 md:p-8 relative h-auto md:h-[60vh] w-full">
-            {/* OTIMIZAÇÃO: Usando a tag <img> para o background */}
             <div className="absolute inset-0 w-full h-full">
               <img
-                // Caminho corrigido para a imagem na pasta public/imagens
                 src="/imagens/backgroundbio.webp"
                 alt="Imagem de fundo da biografia"
                 className="w-full h-full object-cover"
-                loading="eager" // Carrega a imagem imediatamente
+                loading="eager"
               />
-              {/* Overlay sobre a imagem */}
               <div className="absolute inset-0 bg-black opacity-70 z-0"></div>
             </div>
 
