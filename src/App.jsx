@@ -12,7 +12,7 @@ import HomePage from './pages/HomePage';
 import AboutPage from './pages/AboutPage';
 import DirectorsPage from './pages/DirectorsPage';
 import DirectorDetailPage from './pages/DirectorDetailPage';
-import ColorShadePage from './pages/ColorShadePage';
+import ColorShadePage from './pages/Colorshadepage';
 import PhotographyPage from './pages/PhotographyPage';
 import PhotographerDetailPage from './pages/Photographerdetailpage';
 import ContactPage from './pages/ContactPage';
