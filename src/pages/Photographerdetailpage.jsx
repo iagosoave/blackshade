@@ -58,7 +58,7 @@ export default function PhotographerDetailPage({ language }) {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="text-white text-xl">Fotógrafo não encontrado</div>
+        <div className="text-white text-xl">Fotógrafo não foi encontrado</div>
       </motion.div>
     );
   }
