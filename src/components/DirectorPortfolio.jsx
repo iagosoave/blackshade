@@ -52,6 +52,22 @@ const PortfolioItem = memo(({ item, index, onClick }) => (
 
 PortfolioItem.displayName = 'PortfolioItem';
 
+// Biografias dos diretores
+const directorsBios = {
+  'alice-demier': {
+    bio: 'Alice Demier é uma diretora e artista brasileira com trajetória sólida no teatro e no audiovisual, reconhecida por um olhar feminino apurado, estético, ético e por uma direção de cena precisa, especialmente em projetos com grandes celebridades. Ao longo de 16 anos na TV Globo, integrou a direção de programas como Caras de Pau, Tá no Ar e o novo Zorra, lapidando uma linguagem que combina humor, cultura popular e sofisticação narrativa.\n\nComo diretora freelancer, comandou a série Like de Milhões (Multishow, 2022), com Marcus Majella e Rafael Infante, e Body by Beth (2024), estrelada por Marisa Orth, exibida na TNT e na Max, sempre conduzindo talentos com cuidado, escuta e precisão cênica. Também atuou no coletivo Porta dos Fundos e dirigiu campanhas publicitárias para o Grupo Globo (Multishow, GNT, TV Globo) e conteúdos para o Globoplay.\n\nNa educação, ministra cursos como "Direção de Humor para Audiovisual" na CAL, compartilhando sua experiência com novas gerações. Transitando entre palco e tela, Alice Demier se afirma como uma referência no cenário cultural brasileiro, articulando humor, rigor técnico e sensibilidade feminina na forma como enxerga e representa pessoas e histórias.'
+  },
+  'renata-massetti': {
+    bio: 'Renata Massetti é diretora, fotógrafa e produtora de conteúdo com mais de 20 anos de experiência. De olhar criterioso e sensível, se envolve naturalmente em todas as etapas de um filme, da concepção à pós-produção.\n\nPublicitária e mestre em Comunicação, iniciou sua trajetória na fotografia still e ampliou sua atuação como pesquisadora, roteirista e montadora. Hoje assina filmes e campanhas com um estilo que combina olhar cinematográfico e autenticidade, o factual e o sutil, traduzindo histórias reais em narrativas visuais ao mesmo tempo sensíveis e potentes.\n\nCom foco em branded documentaries, suas narrativas atravessam o universo da moda, do esporte e de temas socioambientais, em projetos para marcas como Nike, Mizuno, Lojas Renner, C&A e Canal OFF, em produções no Brasil e no exterior. Atualmente possui dois documentários rodando em festivais pelo mundo: Tainá, cinebiografia de uma atleta surfista, e Gentle Giants, filme subaquático experimental que explora a experiência de dividir o mar com os tubarões-baleia ao lado de freedivers.'
+  },
+  'rafa-rocha': {
+    bio: 'Rafael Rocha é músico, designer, fotógrafo e diretor. Há mais de 15 anos cria conteúdo para marcas e artistas, sempre conectado às novas tendências visuais, à cultura pop e à música, com um olhar que mistura repertório estético sólido e apurado para novidades.\n\nJá trabalhou com nomes e marcas como Skol, Devassa, Fiat, Red Bull, C&A, Samsung, e artistas como Gal Costa, Criolo, Anitta, Ludmilla, Marcelo Falcão, Gilberto Gil, Marcelo D2, Liniker, entre outros; sempre transitando com naturalidade entre o universo comercial e o artístico. É também sócio-fundador da revista NOIZE e da Noize Records, ampliando sua atuação no cruzamento entre música, curadoria e experimentação visual.\n\nFoi indicado ao Grammy Latino na categoria de Melhor Projeto Gráfico e ao Music Video Festival BR como Melhor Clipe do Ano, além de ter integrado o Superjúri do Prêmio Multishow. No set, Rafa tem habilidade rara de lidar com personalidades e celebridades, equilibrando direção firme e uma estética contemporânea que se traduz em um ambiente criativo, acolhedor e respeitoso.'
+  },
+  'gustavo-vargas': {
+    bio: 'Gustavo Vargas é diretor com base sólida na fotografia still e na direção de fotografia. Nesse percurso, lapidou um olhar atento ao acting e à iluminação, de pessoas e de espaços, o que o levou naturalmente à direção de videoclipes, publicidade e projetos que variam entre documentário, moda e música.\n\nSua linguagem tem forte apelo visual sempre buscando novas composições, ritmos e maneiras de fazer a imagem respirar. Atento aos processos e relações em set, acredita que o melhor resultado nasce da sintonia entre todas as etapas do processo, algo presente em trabalhos para Itaú, Fila, C&A, Renner, Boticário, Multishow, GNT, Combate e SporTV, além de colaborações com nomes como Lulu Santos, Iza, Ferrugem, Péricles, Raça Negra, Natiruts e Xamã.\n\nEm fase de expansão criativa, Gustavo está sempre aberto a novas possibilidades estéticas e tecnológicas. Com portfólio diverso, um olhar humano e cinematográfico, segue construindo, em parceria com clientes e artistas.'
+  }
+};
+
 export default function DirectorPortfolio({ director, onBack, loading, onVideoOpen, language = 'pt' }) {
   const [selectedVideoUrl, setSelectedVideoUrl] = useState(null);
   const t = translations[language] || translations.pt;
@@ -68,24 +84,84 @@ export default function DirectorPortfolio({ director, onBack, loading, onVideoOp
     if (onVideoOpen) onVideoOpen(false);
   }, [onVideoOpen]);
 
+  // Pega a biografia do diretor
+  const directorBio = directorsBios[director?.id] || null;
+
   return (
     <>
       {/* Container com scroll para todo o conteúdo */}
       <div className="h-screen overflow-y-auto relative">
         
-        {/* Botão voltar - melhor alinhado no canto direito */}
+        {/* Botão voltar - design elegante */}
         <div className="absolute top-6 right-6 z-50">
           <button
-            className="text-white text-sm tracking-wider hover:opacity-70 flex items-center gap-2 px-4 py-2 border border-white/20 rounded-full transition-all hover:border-white/40"
+            className="text-white hover:text-white/70 flex items-center justify-center w-10 h-10 transition-all hover:scale-110 group"
             onClick={onBack}
-            style={{ fontFamily: 'Impact, Haettenschweiler, Arial Black, sans-serif' }}
+            aria-label="Voltar"
           >
-            <span className="text-lg">←</span>
-            {t.directors.back.replace('← ', '')}
+            <svg 
+              width="32" 
+              height="32" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="1.5"
+              className="transition-transform group-hover:-translate-x-1"
+            >
+              <path d="M19 12H5M5 12L12 19M5 12L12 5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </button>
         </div>
         
-        {/* Grid de Vídeos */}
+        {/* Biografia do Diretor - AGORA NO TOPO */}
+        {director && directorBio && (
+          <div className="flex flex-col md:flex-row items-center md:items-start p-6 md:p-8 pt-20 md:pt-24 relative min-h-[60vh] w-full">
+            <div className="absolute inset-0 w-full h-full">
+              <img
+                src="/imagens/backgroundbio.webp"
+                alt="Imagem de fundo da biografia"
+                className="w-full h-full object-cover"
+                loading="eager"
+              />
+              <div className="absolute inset-0 bg-black opacity-70 z-0"></div>
+            </div>
+
+            <motion.div
+              className="w-full md:w-1/3 flex justify-center mb-6 md:mb-0 z-10"
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+            >
+              <img
+                src="https://via.placeholder.com/200"
+                alt={director.name}
+                className="rounded-full w-32 h-32 md:w-40 md:h-40 object-cover border-2 border-white"
+                loading="lazy"
+              />
+            </motion.div>
+            
+            <motion.div
+              className="w-full md:w-2/3 text-white text-center md:text-left z-10 md:pl-6"
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+            >
+              <h2
+                className="text-3xl md:text-4xl mb-4"
+                style={{ fontFamily: 'Impact, Haettenschweiler, Arial Black, sans-serif' }}
+              >
+                {director.name}
+              </h2>
+              <div className="text-xs md:text-sm opacity-80 leading-relaxed space-y-3">
+                {directorBio.bio.split('\n\n').map((paragraph, index) => (
+                  <p key={index}>{paragraph}</p>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Grid de Vídeos - AGORA EMBAIXO */}
         <div>
           {loading ? (
             <div className="flex items-center justify-center h-[60vh]">
@@ -110,52 +186,6 @@ export default function DirectorPortfolio({ director, onBack, loading, onVideoOp
             </>
           )}
         </div>
-
-        {/* Biografia do Diretor */}
-        {director && (
-          <div className="flex flex-col md:flex-row items-center md:items-start p-6 md:p-8 relative h-auto md:h-[60vh] w-full">
-            <div className="absolute inset-0 w-full h-full">
-              <img
-                src="/imagens/backgroundbio.webp"
-                alt="Imagem de fundo da biografia"
-                className="w-full h-full object-cover"
-                loading="eager"
-              />
-              <div className="absolute inset-0 bg-black opacity-70 z-0"></div>
-            </div>
-
-            <motion.div
-              className="w-full md:w-1/3 flex justify-center mb-4 md:mb-0 z-10 pt-12 md:pt-0"
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-            >
-              <img
-                src="https://via.placeholder.com/200"
-                alt={director.name}
-                className="rounded-full w-32 h-32 md:w-36 md:h-36 object-cover border-2 border-white"
-                loading="lazy"
-              />
-            </motion.div>
-            
-            <motion.div
-              className="w-full md:w-2/3 text-white text-center md:text-left z-10"
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
-            >
-              <h2
-                className="text-3xl md:text-4xl mb-3"
-                style={{ fontFamily: 'Impact, Haettenschweiler, Arial Black, sans-serif' }}
-              >
-                {director.name}
-              </h2>
-              <p className="text-sm md:text-base opacity-80 leading-relaxed line-clamp-4 md:line-clamp-none">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-              </p>
-            </motion.div>
-          </div>
-        )}
       </div>
 
       {/* Video Popup */}

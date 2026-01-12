@@ -12,7 +12,7 @@ export default function Logo() {
 
   return (
     <motion.div
-      className="fixed top-4 left-8 z-50 cursor-pointer"
+      className="fixed top-5 left-10 z-50 cursor-pointer"
       initial={{ opacity: 0, x: -50 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.8, ease: "easeOut" }}

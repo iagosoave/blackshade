@@ -9,10 +9,12 @@ export default function Menu({ language, activeModal }) {
   const t = translations[language] || translations.pt;
 
   const menuItems = [
-  { label: t.menu.about, key: 'about', path: '/sobre' },
-  { label: t.menu.directors, key: 'directors', path: '/diretores' },
-  { label: t.menu.contact, key: 'contact', path: '/contato' }
-];
+    { label: t.menu.about, key: 'about', path: '/sobre' },
+    { label: t.menu.directors, key: 'directors', path: '/diretores' },
+    { label: t.menu.colorshade, key: 'colorshade', path: '/colorshade' },
+    { label: t.menu.photography, key: 'photography', path: '/fotografia' },
+    { label: t.menu.contact, key: 'contact', path: '/contato' }
+  ];
 
   const handleItemClick = (item) => {
     navigate(item.path);
@@ -68,10 +70,10 @@ export default function Menu({ language, activeModal }) {
               {menuItems.map((item, index) => (
                 <motion.button
                   key={item.key}
-                  className={`text-white text-2xl tracking-widest relative ${
+                  className={`text-white text-2xl tracking-wider relative lowercase ${
                     activeModal === item.key ? 'opacity-100' : 'opacity-70'
                   }`}
-                  style={{ fontFamily: 'Impact, Haettenschweiler, Arial Black, sans-serif' }}
+                  style={{ fontFamily: 'Poppins, sans-serif', fontWeight: '700' }}
                   onClick={() => handleItemClick(item)}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -120,8 +122,8 @@ export default function Menu({ language, activeModal }) {
                 transition={{ delay: 0.3 + index * 0.1 }}
               >
                 <button
-                  className="text-white text-sm tracking-widest hover:opacity-70 transition-opacity pb-1"
-                  style={{ fontFamily: 'Impact, Haettenschweiler, Arial Black, sans-serif' }}
+                  className="text-white text-sm tracking-wider hover:opacity-70 transition-opacity pb-1 lowercase"
+                  style={{ fontFamily: 'Poppins, sans-serif', fontWeight: '700' }}
                   onClick={() => handleItemClick(item)}
                 >
                   {item.label}

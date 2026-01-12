@@ -2,11 +2,11 @@
 export const translations = {
   pt: {
     menu: {
-      about: 'QUEM SOMOS',
-      directors: 'DIRETORES',
-      cosmos: 'COSMOS/VFX',
-      daydream: 'DAYDREAM/IA',
-      contact: 'CONTATO'
+      about: 'quem somos',
+      directors: 'diretores',
+      colorshade: 'colorshade',
+      photography: 'fotografia still',
+      contact: 'contato'
     },
     about: {
       title: 'QUEM SOMOS',
@@ -26,13 +26,13 @@ export const translations = {
       loading: 'Carregando portfolio...',
       soon: 'Portfolio em breve'
     },
-    cosmos: {
-      title: 'COSMOS/VFX',
+    colorshade: {
+      title: 'COLORSHADE',
       loading: 'Carregando...',
-      soon: 'Em breve'
+      concept: 'Em desenvolvimento'
     },
-    daydream: {
-      title: 'DAYDREAM/IA',
+    photography: {
+      title: 'FOTOGRAFIA STILL',
       loading: 'Carregando...',
       soon: 'Em breve'
     },
@@ -71,11 +71,11 @@ export const translations = {
   },
   en: {
     menu: {
-      about: 'ABOUT US',
-      directors: 'DIRECTORS',
-      cosmos: 'COSMOS/VFX',
-      daydream: 'DAYDREAM/AI',
-      contact: 'CONTACT'
+      about: 'about us',
+      directors: 'directors',
+      colorshade: 'colorshade',
+      photography: 'still photography',
+      contact: 'contact'
     },
     about: {
       title: 'ABOUT US',
@@ -95,13 +95,13 @@ export const translations = {
       loading: 'Loading portfolio...',
       soon: 'Portfolio coming soon'
     },
-    cosmos: {
-      title: 'COSMOS/VFX',
+    colorshade: {
+      title: 'COLORSHADE',
       loading: 'Loading...',
-      soon: 'Coming soon'
+      concept: 'Under development'
     },
-    daydream: {
-      title: 'DAYDREAM/AI',
+    photography: {
+      title: 'STILL PHOTOGRAPHY',
       loading: 'Loading...',
       soon: 'Coming soon'
     },

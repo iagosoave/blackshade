@@ -7,12 +7,14 @@ import Logo from './components/Logo';
 import Menu from './components/Menu';
 import LanguageSwitcher from './components/LanguageSwitcher';
 
-// Páginas - SEM LAZY LOADING para evitar problemas
+// Páginas
 import HomePage from './pages/HomePage';
 import AboutPage from './pages/AboutPage';
 import DirectorsPage from './pages/DirectorsPage';
 import DirectorDetailPage from './pages/DirectorDetailPage';
-import CosmosPage from './pages/CosmosPage';
+import ColorShadePage from './pages/ColorShadePage';
+import PhotographyPage from './pages/PhotographyPage';
+import PhotographerDetailPage from './pages/Photographerdetailpage';
 import ContactPage from './pages/ContactPage';
 
 // Imagens
@@ -59,8 +61,9 @@ function AppLayout({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Verifica se está em uma página de detalhe de diretor
+  // Verifica se está em uma página de detalhe de diretor ou fotógrafo
   const isDirectorDetail = location.pathname.startsWith('/diretores/');
+  const isPhotographerDetail = location.pathname.startsWith('/fotografia/');
   const isHomePage = location.pathname === '/';
 
   const handleLogoClick = useCallback(() => {
@@ -72,7 +75,8 @@ function AppLayout({ children }) {
     
     if (item === t.menu.about) navigate('/sobre');
     else if (item === t.menu.directors) navigate('/diretores');
-    else if (item === t.menu.cosmos) navigate('/cosmos');
+    else if (item === t.menu.colorshade) navigate('/colorshade');
+    else if (item === t.menu.photography) navigate('/fotografia');
     else if (item === t.menu.contact) navigate('/contato');
   }, [language, navigate]);
 
@@ -81,7 +85,8 @@ function AppLayout({ children }) {
     const path = location.pathname;
     if (path === '/sobre') return 'about';
     if (path.startsWith('/diretores')) return 'directors';
-    if (path === '/cosmos') return 'cosmos';
+    if (path === '/colorshade') return 'colorshade';
+    if (path.startsWith('/fotografia')) return 'photography';
     if (path === '/contato') return 'contact';
     return null;
   };
@@ -103,16 +108,16 @@ function AppLayout({ children }) {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
-          {/* Logo - Sempre visível exceto no portfolio de diretores */}
-          {!isDirectorDetail && <Logo onClick={handleLogoClick} />}
+          {/* Logo - Sempre visível exceto nos portfolios de diretores e fotógrafos */}
+          {!isDirectorDetail && !isPhotographerDetail && <Logo onClick={handleLogoClick} />}
 
           {/* Language Switcher - Apenas na home */}
           {isHomePage && (
             <LanguageSwitcher language={language} onChange={setLanguage} />
           )}
 
-          {/* Menu - Esconde apenas no portfolio de diretores */}
-          {!isDirectorDetail && (
+          {/* Menu - Esconde apenas nos portfolios de diretores e fotógrafos */}
+          {!isDirectorDetail && !isPhotographerDetail && (
             <Menu
               onItemClick={handleMenuClick}
               language={language}
@@ -148,7 +153,9 @@ export default function App() {
           <Route path="/sobre" element={<AppLayout><AboutPage /></AppLayout>} />
           <Route path="/diretores" element={<AppLayout><DirectorsPage /></AppLayout>} />
           <Route path="/diretores/:directorId" element={<AppLayout><DirectorDetailPage /></AppLayout>} />
-          <Route path="/cosmos" element={<AppLayout><CosmosPage /></AppLayout>} />
+          <Route path="/colorshade" element={<AppLayout><ColorShadePage /></AppLayout>} />
+          <Route path="/fotografia" element={<AppLayout><PhotographyPage /></AppLayout>} />
+          <Route path="/fotografia/:photographerId" element={<AppLayout><PhotographerDetailPage /></AppLayout>} />
           <Route path="/contato" element={<AppLayout><ContactPage /></AppLayout>} />
         </Routes>
       </div>
