@@ -36,7 +36,7 @@ export default function ColorShadePage({ language }) {
       </div>
       
       <motion.div
-        className="relative w-full h-full overflow-hidden"
+        className="relative w-full h-full overflow-auto"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2, duration: 0.3 }}
@@ -56,15 +56,28 @@ export default function ColorShadePage({ language }) {
           </svg>
         </motion.button>
         
-        <div className="w-full h-full flex items-center justify-center">
+        <div className="w-full min-h-full flex items-center justify-center px-6 py-20">
           <motion.div
-            className="text-center"
+            className="max-w-3xl text-left"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.6 }}
           >
-            <p className="text-white text-xl md:text-2xl opacity-60 lowercase">
-              em breve
+            <p className="text-white text-base md:text-lg leading-relaxed mb-6">
+              A Color Shade é o espaço da Black Shade voltado para criações autorais.
+              É onde a gente se permite experimentar, testar novas narrativas e composições visuais sem a pressão de seguir fórmulas prontas.
+            </p>
+            
+            <p className="text-white text-base md:text-lg leading-relaxed mb-6">
+              Cada projeto nasce da liberdade de transformar inquietações em imagens que convidam à reflexão e ampliam o olhar sobre o audiovisual.
+            </p>
+            
+            <p className="text-white text-base md:text-lg leading-relaxed mb-6">
+              As cores ou a ausência delas e suas nuances são parte desse processo, cada camada abre uma possibilidade de revelar algo que ainda não foi percebido.
+            </p>
+            
+            <p className="text-white text-base md:text-lg leading-relaxed">
+              Mais do que produzir, buscamos construir narrativas que tenham densidade e que desafiem o óbvio, tratando o cinema e o audiovisual como linguagens vivas, sempre abertas a novas interpretações.
             </p>
           </motion.div>
         </div>

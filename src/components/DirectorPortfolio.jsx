@@ -113,9 +113,9 @@ export default function DirectorPortfolio({ director, onBack, loading, onVideoOp
           </button>
         </div>
         
-        {/* Biografia do Diretor - AGORA NO TOPO */}
+        {/* Biografia do Diretor - ESTRUTURA PADRONIZADA */}
         {director && directorBio && (
-          <div className="flex flex-col md:flex-row items-center md:items-start p-6 md:p-8 pt-20 md:pt-24 relative min-h-[60vh] w-full">
+          <div className="flex items-center justify-center px-6 py-16 md:px-12 md:py-20 relative w-full">
             <div className="absolute inset-0 w-full h-full">
               <img
                 src="/imagens/backgroundbio.webp"
@@ -127,35 +127,24 @@ export default function DirectorPortfolio({ director, onBack, loading, onVideoOp
             </div>
 
             <motion.div
-              className="w-full md:w-1/3 flex justify-center mb-6 md:mb-0 z-10"
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-            >
-              <img
-                src="https://via.placeholder.com/200"
-                alt={director.name}
-                className="rounded-full w-32 h-32 md:w-40 md:h-40 object-cover border-2 border-white"
-                loading="lazy"
-              />
-            </motion.div>
-            
-            <motion.div
-              className="w-full md:w-2/3 text-white text-center md:text-left z-10 md:pl-6"
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
+              className="w-full max-w-4xl z-10"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
             >
               <h2
-                className="text-3xl md:text-4xl mb-4"
+                className="text-2xl md:text-4xl mb-8 text-white text-center"
                 style={{ fontFamily: 'Impact, Haettenschweiler, Arial Black, sans-serif' }}
               >
                 {director.name}
               </h2>
-              <div className="text-xs md:text-sm opacity-80 leading-relaxed space-y-3">
-                {directorBio.bio.split('\n\n').map((paragraph, index) => (
-                  <p key={index}>{paragraph}</p>
-                ))}
+              
+              <div className="text-white text-justify md:text-left">
+                <div className="text-sm md:text-base leading-relaxed space-y-4 opacity-90">
+                  {directorBio.bio.split('\n\n').map((paragraph, index) => (
+                    <p key={index} className="indent-0">{paragraph}</p>
+                  ))}
+                </div>
               </div>
             </motion.div>
           </div>
