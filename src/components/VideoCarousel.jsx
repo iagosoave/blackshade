@@ -1,117 +1,174 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+
+const VIDEOS = [
+  '/videos/01.mp4',
+  '/videos/02.mp4',
+  '/videos/03.mp4',
+  '/videos/04.mp4',
+  '/videos/05.mp4'
+];
 
 export default function VideoCarousel() {
-  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [nextIndex, setNextIndex] = useState(1);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const videoRef = useRef(null);
-  const nextVideoRef = useRef(null);
-  const videoCache = useRef({});
   
-  const videos = [
-    '/videos/01.mp4',
-    '/videos/02.mp4',
-    '/videos/03.mp4',
-    '/videos/04.mp4',
-    '/videos/05.mp4'
-  ];
+  const currentVideoRef = useRef(null);
+  const nextVideoRef = useRef(null);
+  const preloadedRef = useRef(new Set([0]));
 
-  // Pré-carrega vídeos adjacentes
-  const preloadVideo = (index) => {
-    if (videoCache.current[index]) return;
+  // Preload do próximo vídeo
+  const preloadNext = useCallback((index) => {
+    if (preloadedRef.current.has(index)) return;
     
     const video = document.createElement('video');
-    video.src = videos[index];
     video.preload = 'auto';
+    video.src = VIDEOS[index];
     video.load();
-    videoCache.current[index] = true;
-  };
+    preloadedRef.current.add(index);
+  }, []);
 
+  // Efeito para precarregar vídeos adjacentes
   useEffect(() => {
-    const video = videoRef.current;
-    const nextVideo = nextVideoRef.current;
+    const next = (currentIndex + 1) % VIDEOS.length;
+    const afterNext = (currentIndex + 2) % VIDEOS.length;
     
-    if (!video || !nextVideo) return;
+    setNextIndex(next);
+    
+    // Preload com pequeno delay para não competir com o vídeo atual
+    const timer = setTimeout(() => {
+      preloadNext(next);
+      preloadNext(afterNext);
+    }, 500);
 
-    // Configura vídeo atual
-    video.src = videos[currentVideoIndex];
-    video.load();
-    
-    // Pré-carrega vídeos adjacentes (anterior, atual e próximo)
-    const prevIndex = (currentVideoIndex - 1 + videos.length) % videos.length;
-    const nextIndex = (currentVideoIndex + 1) % videos.length;
-    
-    preloadVideo(prevIndex);
-    preloadVideo(currentVideoIndex);
-    preloadVideo(nextIndex);
-    
-    // Configura próximo vídeo
-    nextVideo.src = videos[nextIndex];
-    nextVideo.load();
-    
-    // Toca o vídeo atual
-    const playVideo = () => {
-      video.play().catch(() => {
-        // Se autoplay falhar, espera clique
-        document.addEventListener('click', () => {
-          video.play();
-        }, { once: true });
-      });
+    return () => clearTimeout(timer);
+  }, [currentIndex, preloadNext]);
+
+  // Inicia reprodução do vídeo atual
+  useEffect(() => {
+    const video = currentVideoRef.current;
+    if (!video) return;
+
+    const playVideo = async () => {
+      try {
+        video.currentTime = 0;
+        await video.play();
+      } catch (err) {
+        // Autoplay bloqueado - adiciona listener para interação
+        const handleInteraction = () => {
+          video.play().catch(() => {});
+        };
+        document.addEventListener('click', handleInteraction, { once: true });
+        document.addEventListener('touchstart', handleInteraction, { once: true });
+      }
     };
-    
-    // Inicia quando estiver pronto
+
     if (video.readyState >= 3) {
       playVideo();
     } else {
-      video.addEventListener('canplay', playVideo, { once: true });
+      video.addEventListener('canplaythrough', playVideo, { once: true });
     }
-    
-  }, [currentVideoIndex]);
+  }, [currentIndex]);
 
-  const handleVideoEnded = () => {
-    if (isTransitioning) return;
-    
-    const nextIndex = (currentVideoIndex + 1) % videos.length;
-    const video = videoRef.current;
+  // Prepara o próximo vídeo
+  useEffect(() => {
     const nextVideo = nextVideoRef.current;
-    
+    if (!nextVideo) return;
+
+    nextVideo.src = VIDEOS[nextIndex];
+    nextVideo.load();
+  }, [nextIndex]);
+
+  // Handler quando vídeo termina
+  const handleVideoEnded = useCallback(() => {
+    if (isTransitioning) return;
     setIsTransitioning(true);
-    
-    // Troca rápida
-    nextVideo.style.display = 'block';
-    nextVideo.play();
-    video.style.display = 'none';
-    
-    // Atualiza estado
-    setCurrentVideoIndex(nextIndex);
-    
-    // Reseta displays após transição
+
+    const nextVideo = nextVideoRef.current;
+    const currentVideo = currentVideoRef.current;
+
+    // Fade transition
+    if (nextVideo && currentVideo) {
+      nextVideo.style.opacity = '1';
+      nextVideo.style.zIndex = '2';
+      nextVideo.play().catch(() => {});
+      
+      currentVideo.style.opacity = '0';
+      currentVideo.style.zIndex = '1';
+    }
+
+    // Atualiza índices após transição
     setTimeout(() => {
-      video.style.display = 'block';
-      nextVideo.style.display = 'none';
+      setCurrentIndex(nextIndex);
       setIsTransitioning(false);
-    }, 100);
-  };
+      
+      // Reseta estilos
+      if (currentVideo) {
+        currentVideo.style.opacity = '1';
+        currentVideo.style.zIndex = '2';
+      }
+      if (nextVideo) {
+        nextVideo.style.opacity = '0';
+        nextVideo.style.zIndex = '1';
+      }
+    }, 300);
+  }, [nextIndex, isTransitioning]);
+
+  // Visibility change - pausa quando tab não está visível
+  useEffect(() => {
+    const handleVisibility = () => {
+      const video = currentVideoRef.current;
+      if (!video) return;
+      
+      if (document.hidden) {
+        video.pause();
+      } else {
+        video.play().catch(() => {});
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, []);
 
   return (
     <div className="fixed inset-0 w-full h-full bg-black overflow-hidden">
+      {/* Vídeo Atual */}
       <video
-        ref={videoRef}
-        className="absolute inset-0 w-full h-full object-cover"
+        ref={currentVideoRef}
+        key={`current-${currentIndex}`}
+        className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300"
+        style={{ opacity: 1, zIndex: 2 }}
+        src={VIDEOS[currentIndex]}
         muted
         playsInline
-        autoPlay
         preload="auto"
         onEnded={handleVideoEnded}
       />
       
+      {/* Próximo Vídeo (pré-carregado) */}
       <video
         ref={nextVideoRef}
-        className="absolute inset-0 w-full h-full object-cover"
-        style={{ display: 'none' }}
+        className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300"
+        style={{ opacity: 0, zIndex: 1 }}
         muted
         playsInline
         preload="auto"
       />
+
+      {/* Indicadores */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex gap-2">
+        {VIDEOS.map((_, index) => (
+          <div
+            key={index}
+            className={`h-1 rounded-full transition-all duration-300 ${
+              index === currentIndex 
+                ? 'w-8 bg-white' 
+                : 'w-2 bg-white/40'
+            }`}
+          />
+        ))}
+      </div>
     </div>
   );
 }
