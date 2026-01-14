@@ -6,7 +6,7 @@ import { translations } from '../config/translations';
 // Componente de item do portfolio com memoização
 const PortfolioItem = memo(({ item, index, onClick }) => (
   <motion.div
-    className="relative w-full h-[40vh] md:h-[50vh] overflow-hidden cursor-pointer group"
+    className="relative w-full h-[50vh] md:h-[65vh] overflow-hidden cursor-pointer group"
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     transition={{ delay: index * 0.1, duration: 0.5 }}
@@ -18,6 +18,7 @@ const PortfolioItem = memo(({ item, index, onClick }) => (
         src={item.thumbnail}
         alt={item.title}
         className="w-full h-full object-cover"
+        style={{ objectPosition: item.imagePosition || 'center' }}
         loading="lazy"
       />
       {/* Overlay mais suave - apenas 20% de opacidade */}

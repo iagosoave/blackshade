@@ -19,7 +19,8 @@ export default function DirectorDetailPage({ language }) {
           title: 'SHOW REEL 2026',
           thumbnail: '/imagens/alice.png',
           videoUrl: 'https://vimeo.com/1127911077',
-          description: 'Trabalho de Alice Demier'
+          description: 'Trabalho de Alice Demier',
+          imagePosition: 'center'
         }
       ]
     },
@@ -32,7 +33,8 @@ export default function DirectorDetailPage({ language }) {
           title: 'SHOW REEL 2026',
           thumbnail: '/imagens/gus.png',
           videoUrl: 'https://vimeo.com/1127916716',
-          description: 'Trabalho de Gus Vargas'
+          description: 'Trabalho de Gus Vargas',
+          imagePosition: 'center'
         }
       ]
     },
@@ -45,7 +47,8 @@ export default function DirectorDetailPage({ language }) {
           title: 'SHOW REEL 2026',
           thumbnail: '/imagens/rafa.png',
           videoUrl: 'https://vimeo.com/1125659431',
-          description: 'Trabalho de Rafa Rocha'
+          description: 'Trabalho de Rafa Rocha',
+          imagePosition: '50% 35%'
         }
       ]
     },
@@ -58,7 +61,8 @@ export default function DirectorDetailPage({ language }) {
           title: 'SHOW REEL 2026',
           thumbnail: '/imagens/renata.png',
           videoUrl: 'https://vimeo.com/1125658797',
-          description: 'Trabalho de Renata Massetti'
+          description: 'Trabalho de Renata Massetti',
+          imagePosition: 'center'
         }
       ]
     }
