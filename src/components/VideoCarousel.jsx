@@ -8,18 +8,11 @@ export default function VideoCarousel() {
   const videoCache = useRef({});
   
   const videos = [
-    '/videos/01.webm',
-    '/videos/02.webm',
-    '/videos/03.webm',
-    '/videos/04.webm',
-    '/videos/05.webm',
-    '/videos/06.webm',
-    '/videos/07.webm',
-    '/videos/08.webm',
-    '/videos/09.webm',
-    '/videos/10.webm',
-    '/videos/11.webm',
-    '/videos/12.webm'
+    '/videos/01.mp4',
+    '/videos/02.mp4',
+    '/videos/03.mp4',
+    '/videos/04.mp4',
+    '/videos/05.mp4'
   ];
 
   // Pré-carrega vídeos adjacentes

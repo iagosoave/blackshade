@@ -16,7 +16,7 @@ export default function DirectorDetailPage({ language }) {
       portfolio: [
         {
           id: 'alice-1',
-          title: 'ALICE DEMIER',
+          title: 'SHOW REEL 2026',
           thumbnail: '/imagens/alice.png',
           videoUrl: 'https://vimeo.com/1127911077',
           description: 'Trabalho de Alice Demier'
@@ -29,7 +29,7 @@ export default function DirectorDetailPage({ language }) {
       portfolio: [
         {
           id: 'gus-1',
-          title: 'GUS VARGAS',
+          title: 'SHOW REEL 2026',
           thumbnail: '/imagens/gus.png',
           videoUrl: 'https://vimeo.com/1127916716',
           description: 'Trabalho de Gus Vargas'
@@ -42,7 +42,7 @@ export default function DirectorDetailPage({ language }) {
       portfolio: [
         {
           id: 'rafa-1',
-          title: 'RAFA ROCHA',
+          title: 'SHOW REEL 2026',
           thumbnail: '/imagens/rafa.png',
           videoUrl: 'https://vimeo.com/1125659431',
           description: 'Trabalho de Rafa Rocha'
@@ -55,7 +55,7 @@ export default function DirectorDetailPage({ language }) {
       portfolio: [
         {
           id: 'renata-1',
-          title: 'RENATA MASSETTI',
+          title: 'SHOW REEL 2026',
           thumbnail: '/imagens/renata.png',
           videoUrl: 'https://vimeo.com/1125658797',
           description: 'Trabalho de Renata Massetti'
