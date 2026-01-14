@@ -27,8 +27,8 @@ export default function AboutSection({ language }) {
   ];
 
   return (
-    <div className="h-screen flex items-start justify-center px-8 md:px-16 lg:px-24 xl:px-32 pt-16 overflow-hidden">
-      {/* Conteúdo fixo sem scroll */}
+    <div className="h-screen flex items-center justify-center px-8 md:px-16 lg:px-24 xl:px-32 overflow-hidden">
+      {/* Conteúdo centralizado verticalmente */}
       <div className="max-w-4xl w-full">
         <div className="space-y-5">
           {paragraphs.map((paragraph, index) => (
@@ -38,7 +38,7 @@ export default function AboutSection({ language }) {
               initial="hidden"
               animate="visible"
               variants={textVariants}
-              className="text-white text-xs md:text-sm leading-relaxed font-light tracking-wide"
+              className="text-white text-sm md:text-base leading-relaxed font-light tracking-wide"
               style={{ textAlign: 'justify' }}
             >
               {paragraph}
