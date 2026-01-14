@@ -156,19 +156,6 @@ export default function VideoCarousel() {
         preload="auto"
       />
 
-      {/* Indicadores */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex gap-2">
-        {VIDEOS.map((_, index) => (
-          <div
-            key={index}
-            className={`h-1 rounded-full transition-all duration-300 ${
-              index === currentIndex 
-                ? 'w-8 bg-white' 
-                : 'w-2 bg-white/40'
-            }`}
-          />
-        ))}
-      </div>
     </div>
   );
 }
