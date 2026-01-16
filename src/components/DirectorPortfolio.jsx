@@ -93,10 +93,10 @@ export default function DirectorPortfolio({ director, onBack, loading, onVideoOp
       {/* Container com scroll para todo o conteúdo */}
       <div className="h-screen overflow-y-auto relative">
         
-        {/* Botão voltar - design elegante */}
-        <div className="absolute top-6 right-6 z-50">
+        {/* Botão voltar - Seta grande e clara no mobile */}
+        <div className="absolute top-4 right-4 md:top-6 md:right-6 z-50">
           <button
-            className="text-white hover:text-white/70 flex items-center justify-center w-10 h-10 transition-all hover:scale-110 group"
+            className="text-white hover:text-white/70 flex items-center justify-center w-12 h-12 md:w-10 md:h-10 transition-all hover:scale-110 group"
             onClick={onBack}
             aria-label="Voltar"
           >
@@ -106,7 +106,7 @@ export default function DirectorPortfolio({ director, onBack, loading, onVideoOp
               viewBox="0 0 24 24" 
               fill="none" 
               stroke="currentColor" 
-              strokeWidth="1.5"
+              strokeWidth="2"
               className="transition-transform group-hover:-translate-x-1"
             >
               <path d="M19 12H5M5 12L12 19M5 12L12 5" strokeLinecap="round" strokeLinejoin="round"/>

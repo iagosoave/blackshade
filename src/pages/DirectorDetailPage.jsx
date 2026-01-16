@@ -70,6 +70,7 @@ export default function DirectorDetailPage({ language }) {
 
   const director = directorsMap[directorId];
 
+  // Agora volta para a lista de diretores ao invés da home
   const handleBack = () => {
     navigate('/diretores');
   };

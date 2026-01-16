@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { translations } from '../config/translations';
 
 export default function Menu({ language, activeModal }) {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const t = translations[language] || translations.pt;
 
   const menuItems = [
@@ -21,40 +22,45 @@ export default function Menu({ language, activeModal }) {
     setIsOpen(false);
   };
 
+  // Verifica se está na home page
+  const isHomePage = location.pathname === '/';
+
   return (
     <>
-      {/* Botão Menu Hambúrguer */}
-      <motion.button
-        className="fixed bottom-6 right-6 z-50 w-12 h-12 flex flex-col justify-center items-center gap-1.5 md:hidden"
-        onClick={() => setIsOpen(!isOpen)}
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.3 }}
-      >
-        <motion.span
-          className="w-6 h-[1px] bg-white block"
-          animate={{
-            rotate: isOpen ? 45 : 0,
-            y: isOpen ? 6 : 0
-          }}
+      {/* Botão Menu Hambúrguer - APENAS NA HOME */}
+      {isHomePage && (
+        <motion.button
+          className="fixed bottom-6 right-6 z-50 w-12 h-12 flex flex-col justify-center items-center gap-1.5 md:hidden"
+          onClick={() => setIsOpen(!isOpen)}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3 }}
-        />
-        <motion.span
-          className="w-6 h-[1px] bg-white block"
-          animate={{
-            opacity: isOpen ? 0 : 1
-          }}
-          transition={{ duration: 0.3 }}
-        />
-        <motion.span
-          className="w-6 h-[1px] bg-white block"
-          animate={{
-            rotate: isOpen ? -45 : 0,
-            y: isOpen ? -6 : 0
-          }}
-          transition={{ duration: 0.3 }}
-        />
-      </motion.button>
+        >
+          <motion.span
+            className="w-6 h-[1px] bg-white block"
+            animate={{
+              rotate: isOpen ? 45 : 0,
+              y: isOpen ? 6 : 0
+            }}
+            transition={{ duration: 0.3 }}
+          />
+          <motion.span
+            className="w-6 h-[1px] bg-white block"
+            animate={{
+              opacity: isOpen ? 0 : 1
+            }}
+            transition={{ duration: 0.3 }}
+          />
+          <motion.span
+            className="w-6 h-[1px] bg-white block"
+            animate={{
+              rotate: isOpen ? -45 : 0,
+              y: isOpen ? -6 : 0
+            }}
+            transition={{ duration: 0.3 }}
+          />
+        </motion.button>
+      )}
 
       {/* Menu Mobile - Fullscreen */}
       <AnimatePresence>

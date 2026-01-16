@@ -42,6 +42,7 @@ export default function PhotographerDetailPage({ language }) {
 
   const photographer = photographersMap[photographerId];
 
+  // Agora volta para a lista de fotógrafos ao invés da home
   const handleBack = () => {
     navigate('/fotografia');
   };
