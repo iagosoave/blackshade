@@ -27,7 +27,7 @@ export default function AboutSection({ language }) {
   ];
 
   return (
-    <div className="h-screen flex items-center justify-center px-8 md:px-16 lg:px-24 xl:px-32 overflow-hidden">
+    <div className="min-h-screen md:h-screen flex items-center justify-center px-6 py-8 md:px-16 lg:px-24 xl:px-32">
       {/* Conteúdo centralizado verticalmente */}
       <div className="max-w-4xl w-full">
         <div className="space-y-5">

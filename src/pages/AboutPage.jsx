@@ -23,8 +23,8 @@ export default function AboutPage({ language }) {
         duration: 0.4
       }}
     >
-      {/* Container sem scroll */}
-      <div className="relative w-full h-full overflow-hidden">
+      {/* Container COM scroll para mobile */}
+      <div className="relative w-full h-full overflow-y-auto md:overflow-hidden">
         {/* Imagem de fundo fixa */}
         <div 
           className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
@@ -36,7 +36,7 @@ export default function AboutPage({ language }) {
         
         {/* Botão de fechar */}
         <motion.button
-          className="fixed top-6 right-6 text-white z-50 p-2 hover:bg-white/10 rounded-full transition-colors"
+          className="fixed top-4 right-4 md:top-6 md:right-6 text-white z-50 p-2 hover:bg-white/10 rounded-full transition-colors"
           onClick={handleClose}
           initial={{ opacity: 0, rotate: -90 }}
           animate={{ opacity: 1, rotate: 0 }}
@@ -50,8 +50,8 @@ export default function AboutPage({ language }) {
           </svg>
         </motion.button>
         
-        {/* Conteúdo fixo */}
-        <div className="relative z-10">
+        {/* Conteúdo com padding superior no mobile para não ficar atrás do logo */}
+        <div className="relative z-10 pt-24 md:pt-0">
           <AboutSection language={language} />
         </div>
       </div>
