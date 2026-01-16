@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 const VIDEOS = [
-  '/videos/01.mp4',
-  '/videos/02.mp4',
-  '/videos/03.mp4',
-  '/videos/04.mp4',
-  '/videos/05.mp4'
+  '/videos/01.webm',
+  '/videos/02.webm',
+  '/videos/03.webm',
+  '/videos/04.webm',
+  '/videos/05.webm'
 ];
 
 export default function VideoCarousel() {
