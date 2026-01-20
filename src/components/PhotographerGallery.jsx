@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Componente de Lightbox para visualização ampliada
@@ -89,23 +89,53 @@ const Lightbox = ({ image, onClose, onNext, onPrev, currentIndex, total }) => {
   );
 };
 
-// Componente de item individual da galeria
+// Componente de item individual da galeria com Intersection Observer
 const GalleryItem = ({ src, index, onClick }) => {
   const [loaded, setLoaded] = useState(false);
+  const [shouldLoad, setShouldLoad] = useState(index < 10); // Carrega as primeiras 10 imediatamente
+  const itemRef = useRef(null);
+
+  useEffect(() => {
+    if (shouldLoad) return; // Já está marcado para carregar
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setShouldLoad(true);
+          observer.disconnect();
+        }
+      },
+      {
+        rootMargin: '200px 0px', // Começa a carregar 200px antes de aparecer
+        threshold: 0
+      }
+    );
+
+    if (itemRef.current) {
+      observer.observe(itemRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [shouldLoad]);
 
   return (
     <div
-      className="overflow-hidden cursor-pointer mb-1 sm:mb-2"
-      onClick={() => onClick(index)}
+      ref={itemRef}
+      className="overflow-hidden cursor-pointer mb-1 sm:mb-2 bg-zinc-900"
+      onClick={() => loaded && onClick(index)}
       style={{ breakInside: 'avoid' }}
     >
-      <img
-        src={src}
-        alt={`Foto ${index + 1}`}
-        className={`w-full h-auto block transition-all duration-300 hover:opacity-90 ${loaded ? 'opacity-100' : 'opacity-0'}`}
-        loading="lazy"
-        onLoad={() => setLoaded(true)}
-      />
+      {shouldLoad ? (
+        <img
+          src={src}
+          alt={`Foto ${index + 1}`}
+          className={`w-full h-auto block transition-opacity duration-300 hover:opacity-90 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+          onLoad={() => setLoaded(true)}
+        />
+      ) : (
+        // Placeholder enquanto não carrega
+        <div className="w-full aspect-[3/4] bg-zinc-900" />
+      )}
     </div>
   );
 };
