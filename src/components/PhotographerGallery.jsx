@@ -1,8 +1,10 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Componente de Lightbox para visualização ampliada
 const Lightbox = ({ image, onClose, onNext, onPrev, currentIndex, total }) => {
+  const [touchStart, setTouchStart] = useState(null);
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') onClose();
@@ -13,8 +15,6 @@ const Lightbox = ({ image, onClose, onNext, onPrev, currentIndex, total }) => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose, onNext, onPrev]);
 
-  // Swipe para mobile
-  const [touchStart, setTouchStart] = useState(null);
   const handleTouchStart = (e) => setTouchStart(e.touches[0].clientX);
   const handleTouchEnd = (e) => {
     if (!touchStart) return;
@@ -48,9 +48,9 @@ const Lightbox = ({ image, onClose, onNext, onPrev, currentIndex, total }) => {
         </svg>
       </button>
 
-      {/* Navegação Anterior - esconde em mobile pequeno */}
+      {/* Navegação Anterior */}
       <button
-        className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 text-white/50 hover:text-white z-[110] p-2 transition-colors hidden sm:block"
+        className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 text-white/50 hover:text-white z-[110] p-2 transition-colors"
         onClick={(e) => { e.stopPropagation(); onPrev(); }}
         aria-label="Anterior"
       >
@@ -59,9 +59,9 @@ const Lightbox = ({ image, onClose, onNext, onPrev, currentIndex, total }) => {
         </svg>
       </button>
 
-      {/* Navegação Próximo - esconde em mobile pequeno */}
+      {/* Navegação Próximo */}
       <button
-        className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 text-white/50 hover:text-white z-[110] p-2 transition-colors hidden sm:block"
+        className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 text-white/50 hover:text-white z-[110] p-2 transition-colors"
         onClick={(e) => { e.stopPropagation(); onNext(); }}
         aria-label="Próximo"
       >
@@ -89,52 +89,41 @@ const Lightbox = ({ image, onClose, onNext, onPrev, currentIndex, total }) => {
   );
 };
 
-// Componente de item individual da galeria com Intersection Observer
+// Componente de item individual - ORIGINAL com correções de bug
 const GalleryItem = ({ src, index, onClick }) => {
   const [loaded, setLoaded] = useState(false);
-  const [shouldLoad, setShouldLoad] = useState(index < 10); // Carrega as primeiras 10 imediatamente
-  const itemRef = useRef(null);
+  const [error, setError] = useState(false);
 
-  useEffect(() => {
-    if (shouldLoad) return; // Já está marcado para carregar
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setShouldLoad(true);
-          observer.disconnect();
-        }
-      },
-      {
-        rootMargin: '200px 0px', // Começa a carregar 200px antes de aparecer
-        threshold: 0
-      }
-    );
-
-    if (itemRef.current) {
-      observer.observe(itemRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, [shouldLoad]);
+  const handleError = () => {
+    console.error(`Erro ao carregar imagem: ${src}`);
+    setError(true);
+  };
 
   return (
     <div
-      ref={itemRef}
       className="overflow-hidden cursor-pointer mb-1 sm:mb-2 bg-zinc-900"
-      onClick={() => loaded && onClick(index)}
+      onClick={() => !error && onClick(index)}
       style={{ breakInside: 'avoid' }}
     >
-      {shouldLoad ? (
-        <img
-          src={src}
-          alt={`Foto ${index + 1}`}
-          className={`w-full h-auto block transition-opacity duration-300 hover:opacity-90 ${loaded ? 'opacity-100' : 'opacity-0'}`}
-          onLoad={() => setLoaded(true)}
-        />
+      {error ? (
+        <div className="w-full aspect-[3/4] bg-zinc-800 flex items-center justify-center">
+          <span className="text-white/30 text-xs">Imagem não encontrada</span>
+        </div>
       ) : (
-        // Placeholder enquanto não carrega
-        <div className="w-full aspect-[3/4] bg-zinc-900" />
+        <>
+          {!loaded && (
+            <div className="w-full aspect-[3/4] bg-zinc-800 animate-pulse" />
+          )}
+          <img
+            src={src}
+            alt={`Foto ${index + 1}`}
+            className={`w-full h-auto block transition-opacity duration-300 ${
+              loaded ? 'opacity-100' : 'opacity-0 h-0'
+            }`}
+            onLoad={() => setLoaded(true)}
+            onError={handleError}
+          />
+        </>
       )}
     </div>
   );
@@ -163,7 +152,7 @@ export default function PhotographerGallery({ images, onBack }) {
     <>
       {/* Container Principal com scroll */}
       <div className="absolute inset-0 overflow-y-auto overflow-x-hidden bg-black">
-        {/* Botão Voltar - fixo */}
+        {/* Botão Voltar - ORIGINAL */}
         <div className="fixed top-3 right-3 sm:top-4 sm:right-4 z-50">
           <button
             className="text-white/80 hover:text-white flex items-center justify-center w-10 h-10 bg-black/50 rounded-full transition-all"
@@ -183,7 +172,7 @@ export default function PhotographerGallery({ images, onBack }) {
           </button>
         </div>
 
-        {/* Grid Masonry */}
+        {/* Grid Masonry - ORIGINAL */}
         <div 
           className="p-1 sm:p-2 md:p-3 pt-14 sm:pt-16 pb-8"
           style={{
