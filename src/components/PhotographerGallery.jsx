@@ -90,7 +90,7 @@ const Lightbox = ({ image, onClose, onNext, onPrev, currentIndex, total }) => {
 };
 
 // Componente de item individual - ORIGINAL com correções de bug
-const GalleryItem = ({ src, index, onClick }) => {
+const GalleryItem = ({ src, index, onClick, shouldPreload }) => {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
 
@@ -122,6 +122,7 @@ const GalleryItem = ({ src, index, onClick }) => {
             }`}
             onLoad={() => setLoaded(true)}
             onError={handleError}
+            loading={shouldPreload ? 'eager' : 'lazy'}
           />
         </>
       )}
@@ -186,6 +187,7 @@ export default function PhotographerGallery({ images, onBack }) {
               src={src}
               index={index}
               onClick={handleImageClick}
+              shouldPreload={index < 20}
             />
           ))}
         </div>
