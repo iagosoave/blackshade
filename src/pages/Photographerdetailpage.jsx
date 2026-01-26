@@ -7,12 +7,34 @@ export default function PhotographerDetailPage({ language }) {
   const { photographerId } = useParams();
   const navigate = useNavigate();
 
-  // Gerar array de imagens do Juan (01_juan.jpg até 87_juan.jpg)
+  // Gerar array de imagens do Juan com os formatos corretos
   const juanImages = useMemo(() => {
+    // Mapeamento de arquivos com extensões diferentes de .jpg
+    const specialFormats = {
+      '05': 'jpeg',
+      '12': 'png',
+      '16': 'png',
+      '27': 'png',
+      '29': 'jpeg',
+      '37': 'jpeg',
+      '42': 'png',
+      '46': 'JPG',
+      '50': 'jpeg',
+      '54': 'png',
+      '61': 'jpeg',
+      '66': 'JPG',
+      '68': 'jpeg',
+      '72': 'JPG',
+      '79': 'jpeg',
+      '83': 'jpeg',
+      '84': 'jpeg'
+    };
+
     const images = [];
     for (let i = 1; i <= 87; i++) {
       const num = i.toString().padStart(2, '0');
-      images.push(`/imagens/${num}_juan.jpg`);
+      const extension = specialFormats[num] || 'jpg';
+      images.push(`/imagens/${num}_juan.${extension}`);
     }
     return images;
   }, []);
