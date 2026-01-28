@@ -1,96 +1,566 @@
 [
-  "/imagens/01_juan.webp",
-  "/imagens/02_juan.webp",
-  "/imagens/03_juan.webp",
-  "/imagens/04_juan.webp",
-  "/imagens/05_juan.webp",
-  "/imagens/06_juan.webp",
-  "/imagens/07_juan.webp",
-  "/imagens/08_juan.webp",
-  "/imagens/09_juan.webp",
-  "/imagens/10_juan.webp",
-  "/imagens/11_juan.webp",
-  "/imagens/12_juan.webp",
-  "/imagens/13_juan.webp",
-  "/imagens/14_juan.webp",
-  "/imagens/15_juan.webp",
-  "/imagens/16_juan.webp",
-  "/imagens/17_juan.webp",
-  "/imagens/18_juan.webp",
-  "/imagens/19_juan.webp",
-  "/imagens/20_juan.webp",
-  "/imagens/21_juan.webp",
-  "/imagens/22_juan.webp",
-  "/imagens/23_juan.webp",
-  "/imagens/24_juan.webp",
-  "/imagens/25_juan.webp",
-  "/imagens/26_juan.webp",
-  "/imagens/27_juan.webp",
-  "/imagens/28_juan.webp",
-  "/imagens/29_juan.webp",
-  "/imagens/30_juan.webp",
-  "/imagens/31_juan.webp",
-  "/imagens/32_juan.webp",
-  "/imagens/33_juan.webp",
-  "/imagens/34_juan.webp",
-  "/imagens/35_juan.webp",
-  "/imagens/36_juan.webp",
-  "/imagens/37_juan.webp",
-  "/imagens/38_juan.webp",
-  "/imagens/39_juan.webp",
-  "/imagens/40_juan.webp",
-  "/imagens/41_juan.webp",
-  "/imagens/42_juan.webp",
-  "/imagens/43_juan.webp",
-  "/imagens/44_juan.webp",
-  "/imagens/45_juan.webp",
-  "/imagens/46_juan.webp",
-  "/imagens/47_juan.webp",
-  "/imagens/48_juan.webp",
-  "/imagens/49_juan.webp",
-  "/imagens/50_juan.webp",
-  "/imagens/51_juan.webp",
-  "/imagens/52_juan.webp",
-  "/imagens/53_juan.webp",
-  "/imagens/54_juan.webp",
-  "/imagens/55_juan.webp",
-  "/imagens/56_juan.webp",
-  "/imagens/57_juan.webp",
-  "/imagens/58_juan.webp",
-  "/imagens/59_juan.webp",
-  "/imagens/60_juan.webp",
-  "/imagens/61_juan.webp",
-  "/imagens/62_juan.webp",
-  "/imagens/63_juan.webp",
-  "/imagens/64_juan.webp",
-  "/imagens/65_juan.webp",
-  "/imagens/66_juan.webp",
-  "/imagens/67_juan.webp",
-  "/imagens/68_juan.webp",
-  "/imagens/69_juan.webp",
-  "/imagens/70_juan.webp",
-  "/imagens/71_juan.webp",
-  "/imagens/72_juan.webp",
-  "/imagens/73_juan.webp",
-  "/imagens/74_juan.webp",
-  "/imagens/75_juan.webp",
-  "/imagens/76_juan.webp",
-  "/imagens/77_juan.webp",
-  "/imagens/78_juan.webp",
-  "/imagens/79_juan.webp",
-  "/imagens/80_juan.webp",
-  "/imagens/81_juan.webp",
-  "/imagens/82_juan.webp",
-  "/imagens/83_juan.webp",
-  "/imagens/84_juan.webp",
-  "/imagens/85_juan.webp",
-  "/imagens/86_juan.webp",
-  "/imagens/87_juan.webp",
-  "/imagens/alice.webp",
-  "/imagens/background.webp",
-  "/imagens/backgroundbio.webp",
-  "/imagens/back_about.webp",
-  "/imagens/gus.webp",
-  "/imagens/rafa.webp",
-  "/imagens/renata.webp"
+  {
+    "src": "/imagens/01_juan.webp",
+    "width": 1920,
+    "height": 800,
+    "aspectRatio": 2.4
+  },
+  {
+    "src": "/imagens/02_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/03_juan.webp",
+    "width": 1920,
+    "height": 2772,
+    "aspectRatio": 0.6926406926406926
+  },
+  {
+    "src": "/imagens/04_juan.webp",
+    "width": 1920,
+    "height": 800,
+    "aspectRatio": 2.4
+  },
+  {
+    "src": "/imagens/05_juan.webp",
+    "width": 792,
+    "height": 990,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/06_juan.webp",
+    "width": 1920,
+    "height": 800,
+    "aspectRatio": 2.4
+  },
+  {
+    "src": "/imagens/07_juan.webp",
+    "width": 1920,
+    "height": 1920,
+    "aspectRatio": 1
+  },
+  {
+    "src": "/imagens/08_juan.webp",
+    "width": 1920,
+    "height": 600,
+    "aspectRatio": 3.2
+  },
+  {
+    "src": "/imagens/09_juan.webp",
+    "width": 1920,
+    "height": 486,
+    "aspectRatio": 3.950617283950617
+  },
+  {
+    "src": "/imagens/10_juan.webp",
+    "width": 1920,
+    "height": 480,
+    "aspectRatio": 4
+  },
+  {
+    "src": "/imagens/11_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/12_juan.webp",
+    "width": 1920,
+    "height": 2808,
+    "aspectRatio": 0.6837606837606838
+  },
+  {
+    "src": "/imagens/13_juan.webp",
+    "width": 1920,
+    "height": 800,
+    "aspectRatio": 2.4
+  },
+  {
+    "src": "/imagens/14_juan.webp",
+    "width": 1628,
+    "height": 1626,
+    "aspectRatio": 1.001230012300123
+  },
+  {
+    "src": "/imagens/15_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/16_juan.webp",
+    "width": 1373,
+    "height": 2442,
+    "aspectRatio": 0.5622440622440622
+  },
+  {
+    "src": "/imagens/17_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/18_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/19_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/20_juan.webp",
+    "width": 1920,
+    "height": 600,
+    "aspectRatio": 3.2
+  },
+  {
+    "src": "/imagens/21_juan.webp",
+    "width": 1628,
+    "height": 1624,
+    "aspectRatio": 1.0024630541871922
+  },
+  {
+    "src": "/imagens/22_juan.webp",
+    "width": 1080,
+    "height": 1920,
+    "aspectRatio": 0.5625
+  },
+  {
+    "src": "/imagens/23_juan.webp",
+    "width": 1920,
+    "height": 2716,
+    "aspectRatio": 0.7069219440353461
+  },
+  {
+    "src": "/imagens/24_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/25_juan.webp",
+    "width": 1920,
+    "height": 2879,
+    "aspectRatio": 0.6668982285515804
+  },
+  {
+    "src": "/imagens/26_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/27_juan.webp",
+    "width": 1920,
+    "height": 3414,
+    "aspectRatio": 0.562390158172232
+  },
+  {
+    "src": "/imagens/28_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/29_juan.webp",
+    "width": 665,
+    "height": 1182,
+    "aspectRatio": 0.562605752961083
+  },
+  {
+    "src": "/imagens/30_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/31_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/32_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/33_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/34_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/35_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/36_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/37_juan.webp",
+    "width": 1182,
+    "height": 665,
+    "aspectRatio": 1.7774436090225565
+  },
+  {
+    "src": "/imagens/38_juan.webp",
+    "width": 1920,
+    "height": 600,
+    "aspectRatio": 3.2
+  },
+  {
+    "src": "/imagens/39_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/40_juan.webp",
+    "width": 1920,
+    "height": 2408,
+    "aspectRatio": 0.7973421926910299
+  },
+  {
+    "src": "/imagens/41_juan.webp",
+    "width": 1200,
+    "height": 1801,
+    "aspectRatio": 0.6662965019433648
+  },
+  {
+    "src": "/imagens/42_juan.webp",
+    "width": 1080,
+    "height": 1920,
+    "aspectRatio": 0.5625
+  },
+  {
+    "src": "/imagens/43_juan.webp",
+    "width": 1920,
+    "height": 3414,
+    "aspectRatio": 0.562390158172232
+  },
+  {
+    "src": "/imagens/44_juan.webp",
+    "width": 1920,
+    "height": 600,
+    "aspectRatio": 3.2
+  },
+  {
+    "src": "/imagens/45_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/46_juan.webp",
+    "width": 1920,
+    "height": 2401,
+    "aspectRatio": 0.7996668054977093
+  },
+  {
+    "src": "/imagens/47_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/48_juan.webp",
+    "width": 1920,
+    "height": 306,
+    "aspectRatio": 6.2745098039215685
+  },
+  {
+    "src": "/imagens/49_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/50_juan.webp",
+    "width": 1086,
+    "height": 725,
+    "aspectRatio": 1.4979310344827585
+  },
+  {
+    "src": "/imagens/51_juan.webp",
+    "width": 1920,
+    "height": 2441,
+    "aspectRatio": 0.7865628840639083
+  },
+  {
+    "src": "/imagens/52_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/53_juan.webp",
+    "width": 1920,
+    "height": 600,
+    "aspectRatio": 3.2
+  },
+  {
+    "src": "/imagens/54_juan.webp",
+    "width": 1534,
+    "height": 1918,
+    "aspectRatio": 0.799791449426486
+  },
+  {
+    "src": "/imagens/55_juan.webp",
+    "width": 1920,
+    "height": 2811,
+    "aspectRatio": 0.6830309498399146
+  },
+  {
+    "src": "/imagens/56_juan.webp",
+    "width": 1920,
+    "height": 373,
+    "aspectRatio": 5.1474530831099194
+  },
+  {
+    "src": "/imagens/57_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/58_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/59_juan.webp",
+    "width": 1920,
+    "height": 800,
+    "aspectRatio": 2.4
+  },
+  {
+    "src": "/imagens/60_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/61_juan.webp",
+    "width": 792,
+    "height": 990,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/62_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/63_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/64_juan.webp",
+    "width": 1920,
+    "height": 1344,
+    "aspectRatio": 1.4285714285714286
+  },
+  {
+    "src": "/imagens/65_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/66_juan.webp",
+    "width": 1920,
+    "height": 2880,
+    "aspectRatio": 0.6666666666666666
+  },
+  {
+    "src": "/imagens/67_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/68_juan.webp",
+    "width": 1182,
+    "height": 665,
+    "aspectRatio": 1.7774436090225565
+  },
+  {
+    "src": "/imagens/69_juan.webp",
+    "width": 1920,
+    "height": 501,
+    "aspectRatio": 3.8323353293413174
+  },
+  {
+    "src": "/imagens/70_juan.webp",
+    "width": 1920,
+    "height": 2401,
+    "aspectRatio": 0.7996668054977093
+  },
+  {
+    "src": "/imagens/71_juan.webp",
+    "width": 1920,
+    "height": 1246,
+    "aspectRatio": 1.5409309791332264
+  },
+  {
+    "src": "/imagens/72_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/73_juan.webp",
+    "width": 1920,
+    "height": 1280,
+    "aspectRatio": 1.5
+  },
+  {
+    "src": "/imagens/74_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/75_juan.webp",
+    "width": 1920,
+    "height": 1281,
+    "aspectRatio": 1.4988290398126465
+  },
+  {
+    "src": "/imagens/76_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/77_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/78_juan.webp",
+    "width": 1920,
+    "height": 2401,
+    "aspectRatio": 0.7996668054977093
+  },
+  {
+    "src": "/imagens/79_juan.webp",
+    "width": 792,
+    "height": 990,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/80_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/81_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/82_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/83_juan.webp",
+    "width": 792,
+    "height": 990,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/84_juan.webp",
+    "width": 1067,
+    "height": 1600,
+    "aspectRatio": 0.666875
+  },
+  {
+    "src": "/imagens/85_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/86_juan.webp",
+    "width": 1920,
+    "height": 2400,
+    "aspectRatio": 0.8
+  },
+  {
+    "src": "/imagens/87_juan.webp",
+    "width": 1920,
+    "height": 2401,
+    "aspectRatio": 0.7996668054977093
+  },
+  {
+    "src": "/imagens/alice.webp",
+    "width": 1920,
+    "height": 1078,
+    "aspectRatio": 1.7810760667903525
+  },
+  {
+    "src": "/imagens/background.webp",
+    "width": 4000,
+    "height": 3000,
+    "aspectRatio": 1.3333333333333333
+  },
+  {
+    "src": "/imagens/backgroundbio.webp",
+    "width": 4000,
+    "height": 3000,
+    "aspectRatio": 1.3333333333333333
+  },
+  {
+    "src": "/imagens/back_about.webp",
+    "width": 1412,
+    "height": 1052,
+    "aspectRatio": 1.3422053231939164
+  },
+  {
+    "src": "/imagens/gus.webp",
+    "width": 1920,
+    "height": 1078,
+    "aspectRatio": 1.7810760667903525
+  },
+  {
+    "src": "/imagens/rafa.webp",
+    "width": 1920,
+    "height": 1076,
+    "aspectRatio": 1.7843866171003717
+  },
+  {
+    "src": "/imagens/renata.webp",
+    "width": 1920,
+    "height": 1077,
+    "aspectRatio": 1.7827298050139275
+  }
 ]

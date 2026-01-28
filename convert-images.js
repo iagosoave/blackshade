@@ -1,4 +1,3 @@
-// convert-images.js
 import sharp from 'sharp';
 import fs from 'fs';
 import path from 'path';
@@ -6,63 +5,68 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// 1. Onde estão as imagens (Pasta Public)
+// Pastas
 const inputFolder = path.join(__dirname, 'public/imagens'); 
-
-// 2. Onde vamos salvar a lista para o React ler (Pasta Src)
 const jsonOutputPath = path.join(__dirname, 'src/lista-fotos.json');
 
 async function convert() {
-  // Verifica se a pasta existe
   if (!fs.existsSync(inputFolder)) {
-    console.error(`❌ Erro: A pasta não foi encontrada: ${inputFolder}`);
-    console.error('Certifique-se de criar a pasta "imagens" dentro de "public".');
+    console.error(`❌ Pasta não encontrada: ${inputFolder}`);
     return;
   }
 
   try {
     const files = fs.readdirSync(inputFolder);
-    const webpList = []; // Array para guardar os nomes
+    // Agora a lista vai guardar OBJETOS com tamanho, não só strings
+    const galleryData = []; 
 
-    console.log('🔄 Iniciando conversão e listagem...');
+    console.log('🔄 Analisando e convertendo imagens...');
 
     for (const file of files) {
-      // Pega arquivos JPG/PNG
       if (file.match(/\.(jpg|jpeg|png)$/i)) {
         const name = path.parse(file).name;
         const inputPath = path.join(inputFolder, file);
         const outputPath = path.join(inputFolder, `${name}.webp`);
-        
-        // Caminho web que o site vai usar
         const webPath = `/imagens/${name}.webp`;
 
-        // Converte se não existir
+        // 1. Converte se precisar
         if (!fs.existsSync(outputPath)) {
           await sharp(inputPath)
             .webp({ quality: 75 })
-            .resize({ width: 1920, withoutEnlargement: true })
+            .resize({ width: 1200, withoutEnlargement: true }) // Reduzi um pouco para otimizar
             .toFile(outputPath);
           console.log(`✅ Convertido: ${name}.webp`);
         }
+
+        // 2. LÊ AS DIMENSÕES REAIS DO ARQUIVO WEBP (O Segredo!)
+        const metadata = await sharp(outputPath).metadata();
         
-        // Adiciona na lista final
-        webpList.push(webPath);
+        galleryData.push({
+          src: webPath,
+          width: metadata.width,
+          height: metadata.height,
+          aspectRatio: metadata.width / metadata.height // Guarda a proporção exata
+        });
       } 
-      // Se já for webp, só adiciona na lista
+      // Se já era WebP, lê as dimensões também
       else if (file.match(/\.webp$/i)) {
-        webpList.push(`/imagens/${file}`);
+        const inputPath = path.join(inputFolder, file);
+        const metadata = await sharp(inputPath).metadata();
+        
+        galleryData.push({
+          src: `/imagens/${file}`,
+          width: metadata.width,
+          height: metadata.height,
+          aspectRatio: metadata.width / metadata.height
+        });
       }
     }
 
-    // Salva o arquivo JSON dentro de SRC para importar no React
-    fs.writeFileSync(jsonOutputPath, JSON.stringify(webpList, null, 2));
-    
-    console.log('------------------------------------------------');
-    console.log(`📄 Lista gerada com ${webpList.length} fotos!`);
-    console.log(`📍 Arquivo salvo em: src/lista-fotos.json`);
+    fs.writeFileSync(jsonOutputPath, JSON.stringify(galleryData, null, 2));
+    console.log(`\n✨ Sucesso! Lista gerada com dimensões exatas em: src/lista-fotos.json`);
 
   } catch (err) {
-    console.error('Erro:', err.message);
+    console.error('Erro:', err);
   }
 }
 
