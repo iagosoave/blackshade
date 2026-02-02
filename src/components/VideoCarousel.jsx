@@ -1,50 +1,84 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 
-const VIDEOS = [
-  '/videos/01.webm',
-  '/videos/02.webm',
-  '/videos/03.webm',
-  '/videos/04.webm',
-  '/videos/05.webm'
-];
+// Detecta se é iOS/Safari (não suporta WebM)
+const isIOSorSafari = () => {
+  if (typeof window === 'undefined') return false;
+  
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  
+  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  
+  return isIOS || isSafari;
+};
+
+// WebM para todos, MP4 apenas para iOS/Safari
+const getVideoSources = () => {
+  if (isIOSorSafari()) {
+    return [
+      '/videos/01.mp4',
+      '/videos/02.mp4',
+      '/videos/03.mp4',
+      '/videos/04.mp4',
+      '/videos/05.mp4'
+    ];
+  }
+  return [
+    '/videos/01.webm',
+    '/videos/02.webm',
+    '/videos/03.webm',
+    '/videos/04.webm',
+    '/videos/05.webm'
+  ];
+};
 
 export default function VideoCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [nextIndex, setNextIndex] = useState(1);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [videos] = useState(getVideoSources);
   
   const currentVideoRef = useRef(null);
   const nextVideoRef = useRef(null);
   const preloadedRef = useRef(new Set([0]));
+  const isIOS = useRef(isIOSorSafari());
 
-  // Preload do próximo vídeo
+  // Preload do próximo vídeo (menos agressivo em iOS)
   const preloadNext = useCallback((index) => {
     if (preloadedRef.current.has(index)) return;
     
+    // Em iOS, limita preload para economizar recursos
+    if (isIOS.current && preloadedRef.current.size > 1) return;
+    
     const video = document.createElement('video');
-    video.preload = 'auto';
-    video.src = VIDEOS[index];
+    video.preload = isIOS.current ? 'metadata' : 'auto';
+    video.src = videos[index];
     video.load();
     preloadedRef.current.add(index);
-  }, []);
+  }, [videos]);
 
-  // Efeito para precarregar vídeos adjacentes
+  // Prepara próximos vídeos
   useEffect(() => {
-    const next = (currentIndex + 1) % VIDEOS.length;
-    const afterNext = (currentIndex + 2) % VIDEOS.length;
+    const next = (currentIndex + 1) % videos.length;
+    const afterNext = (currentIndex + 2) % videos.length;
     
     setNextIndex(next);
     
-    // Preload com pequeno delay para não competir com o vídeo atual
+    // Delay maior para iOS
+    const delay = isIOS.current ? 1500 : 500;
+    
     const timer = setTimeout(() => {
       preloadNext(next);
-      preloadNext(afterNext);
-    }, 500);
+      if (!isIOS.current) {
+        preloadNext(afterNext);
+      }
+    }, delay);
 
     return () => clearTimeout(timer);
-  }, [currentIndex, preloadNext]);
+  }, [currentIndex, preloadNext, videos.length]);
 
-  // Inicia reprodução do vídeo atual
+  // Inicia reprodução
   useEffect(() => {
     const video = currentVideoRef.current;
     if (!video) return;
@@ -52,11 +86,19 @@ export default function VideoCarousel() {
     const playVideo = async () => {
       try {
         video.currentTime = 0;
+        
+        // Delay para iOS processar
+        if (isIOS.current) {
+          await new Promise(resolve => setTimeout(resolve, 50));
+        }
+        
         await video.play();
+        setIsLoaded(true);
       } catch (err) {
-        // Autoplay bloqueado - adiciona listener para interação
+        // Autoplay bloqueado - espera interação
         const handleInteraction = () => {
           video.play().catch(() => {});
+          setIsLoaded(true);
         };
         document.addEventListener('click', handleInteraction, { once: true });
         document.addEventListener('touchstart', handleInteraction, { once: true });
@@ -67,17 +109,24 @@ export default function VideoCarousel() {
       playVideo();
     } else {
       video.addEventListener('canplaythrough', playVideo, { once: true });
+      
+      // Timeout de segurança
+      const timeout = setTimeout(() => {
+        if (!isLoaded) playVideo();
+      }, 4000);
+      
+      return () => clearTimeout(timeout);
     }
-  }, [currentIndex]);
+  }, [currentIndex, isLoaded]);
 
   // Prepara o próximo vídeo
   useEffect(() => {
     const nextVideo = nextVideoRef.current;
     if (!nextVideo) return;
 
-    nextVideo.src = VIDEOS[nextIndex];
+    nextVideo.src = videos[nextIndex];
     nextVideo.load();
-  }, [nextIndex]);
+  }, [nextIndex, videos]);
 
   // Handler quando vídeo termina
   const handleVideoEnded = useCallback(() => {
@@ -87,7 +136,6 @@ export default function VideoCarousel() {
     const nextVideo = nextVideoRef.current;
     const currentVideo = currentVideoRef.current;
 
-    // Fade transition
     if (nextVideo && currentVideo) {
       nextVideo.style.opacity = '1';
       nextVideo.style.zIndex = '2';
@@ -97,12 +145,10 @@ export default function VideoCarousel() {
       currentVideo.style.zIndex = '1';
     }
 
-    // Atualiza índices após transição
     setTimeout(() => {
       setCurrentIndex(nextIndex);
       setIsTransitioning(false);
       
-      // Reseta estilos
       if (currentVideo) {
         currentVideo.style.opacity = '1';
         currentVideo.style.zIndex = '2';
@@ -114,7 +160,7 @@ export default function VideoCarousel() {
     }, 300);
   }, [nextIndex, isTransitioning]);
 
-  // Visibility change - pausa quando tab não está visível
+  // Pausa quando tab não visível
   useEffect(() => {
     const handleVisibility = () => {
       const video = currentVideoRef.current;
@@ -133,29 +179,39 @@ export default function VideoCarousel() {
 
   return (
     <div className="fixed inset-0 w-full h-full bg-black overflow-hidden">
+      {/* Loading */}
+      {!isLoaded && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-black">
+          <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+        </div>
+      )}
+      
       {/* Vídeo Atual */}
       <video
         ref={currentVideoRef}
         key={`current-${currentIndex}`}
         className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300"
         style={{ opacity: 1, zIndex: 2 }}
-        src={VIDEOS[currentIndex]}
+        src={videos[currentIndex]}
         muted
+        loop={false}
         playsInline
-        preload="auto"
+        webkit-playsinline="true"
+        preload={isIOS.current ? "metadata" : "auto"}
         onEnded={handleVideoEnded}
+        onLoadedData={() => setIsLoaded(true)}
       />
       
-      {/* Próximo Vídeo (pré-carregado) */}
+      {/* Próximo Vídeo */}
       <video
         ref={nextVideoRef}
         className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300"
         style={{ opacity: 0, zIndex: 1 }}
         muted
         playsInline
-        preload="auto"
+        webkit-playsinline="true"
+        preload="metadata"
       />
-
     </div>
   );
 }
