@@ -1,18 +1,20 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 
+// Vídeos com ambos os formatos — MP4 é obrigatório para iOS/Safari
 const VIDEOS = [
-  '/videos/01.webm',
-  '/videos/02.webm',
-  '/videos/03.webm',
-  '/videos/04.webm',
-  '/videos/05.webm'
+  { webm: '/videos/01.webm', mp4: '/videos/01.mp4' },
+  { webm: '/videos/02.webm', mp4: '/videos/02.mp4' },
+  { webm: '/videos/03.webm', mp4: '/videos/03.mp4' },
+  { webm: '/videos/04.webm', mp4: '/videos/04.mp4' },
+  { webm: '/videos/05.webm', mp4: '/videos/05.mp4' },
 ];
 
-// Detecta iOS/Safari
-const isIOSorSafari = () => {
+// Detecta se o dispositivo é iOS ou Safari (não suportam WebM)
+const getIsIOS = () => {
   if (typeof window === 'undefined') return false;
   const ua = navigator.userAgent;
-  const isIOS = /iPad|iPhone|iPod/.test(ua) || 
+  const isIOS =
+    /iPad|iPhone|iPod/.test(ua) ||
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
   return isIOS || isSafari;
@@ -20,208 +22,180 @@ const isIOSorSafari = () => {
 
 export default function VideoCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [showFallback, setShowFallback] = useState(false);
-  
-  const currentVideoRef = useRef(null);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [needsTap, setNeedsTap] = useState(false);
+
+  const videoRef = useRef(null);
   const nextVideoRef = useRef(null);
-  const isIOS = useRef(isIOSorSafari());
-  const loadTimeoutRef = useRef(null);
+  const isTransitioning = useRef(false);
+  const isiOS = useRef(getIsIOS());
 
-  // Timeout - se não carregar em 5s no iOS, mostra fallback
-  useEffect(() => {
-    if (isIOS.current && !isLoaded) {
-      loadTimeoutRef.current = setTimeout(() => {
-        setShowFallback(true);
-        const video = currentVideoRef.current;
-        if (video) video.load();
-      }, 5000);
+  // Retorna a URL de vídeo correta pro dispositivo
+  const getVideoSrc = useCallback(
+    (index) => (isiOS.current ? VIDEOS[index].mp4 : VIDEOS[index].webm),
+    []
+  );
+
+  // ── Tenta dar play no vídeo atual ──────────────────────────────
+  const attemptPlay = useCallback(async (video) => {
+    if (!video) return;
+    try {
+      video.currentTime = 0;
+      await video.play();
+      setIsVideoPlaying(true);
+      setNeedsTap(false);
+    } catch {
+      // Autoplay bloqueado (iOS low-power, etc.)
+      setNeedsTap(true);
     }
-    
-    return () => {
-      if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current);
-    };
-  }, [isLoaded]);
+  }, []);
 
-  // Inicia reprodução
+  // ── Carrega e inicia o primeiro vídeo ──────────────────────────
   useEffect(() => {
-    const video = currentVideoRef.current;
+    const video = videoRef.current;
     if (!video) return;
 
-    const playVideo = async () => {
-      try {
-        video.currentTime = 0;
-        await video.play();
-        setIsLoaded(true);
-        setShowFallback(false);
-        if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current);
-      } catch (err) {
-        const handleInteraction = () => {
-          video.play().then(() => {
-            setIsLoaded(true);
-            setShowFallback(false);
-          }).catch(() => {});
-        };
-        document.addEventListener('click', handleInteraction, { once: true });
-        document.addEventListener('touchstart', handleInteraction, { once: true });
-      }
-    };
+    // No iOS, 'loadeddata' dispara mais rápido que 'canplaythrough'
+    const evt = isiOS.current ? 'loadeddata' : 'canplaythrough';
 
-    const eventName = isIOS.current ? 'loadeddata' : 'canplaythrough';
-    
-    if (video.readyState >= (isIOS.current ? 2 : 3)) {
-      playVideo();
+    const onReady = () => attemptPlay(video);
+
+    if (video.readyState >= (isiOS.current ? 2 : 4)) {
+      onReady();
     } else {
-      video.addEventListener(eventName, playVideo, { once: true });
+      video.addEventListener(evt, onReady, { once: true });
     }
 
-    return () => video.removeEventListener(eventName, playVideo);
-  }, [currentIndex]);
+    return () => video.removeEventListener(evt, onReady);
+  }, [currentIndex, attemptPlay]);
 
-  // Handler quando vídeo termina
-  const handleVideoEnded = useCallback(() => {
-    if (isTransitioning) return;
-    setIsTransitioning(true);
-
+  // ── Pré-carrega o próximo vídeo ────────────────────────────────
+  useEffect(() => {
+    const next = nextVideoRef.current;
+    if (!next) return;
     const nextIdx = (currentIndex + 1) % VIDEOS.length;
-    const nextVideo = nextVideoRef.current;
-    const currentVideo = currentVideoRef.current;
+    next.src = getVideoSrc(nextIdx);
+    next.load();
+  }, [currentIndex, getVideoSrc]);
 
-    if (nextVideo && currentVideo) {
-      nextVideo.style.opacity = '1';
-      nextVideo.style.zIndex = '2';
-      nextVideo.play().catch(() => {});
-      
-      currentVideo.style.opacity = '0';
-      currentVideo.style.zIndex = '1';
+  // ── Transição quando o vídeo atual termina ─────────────────────
+  const handleEnded = useCallback(() => {
+    if (isTransitioning.current) return;
+    isTransitioning.current = true;
+
+    const curr = videoRef.current;
+    const next = nextVideoRef.current;
+
+    if (next && curr) {
+      // Cross-fade: mostra o próximo por cima
+      next.style.opacity = '1';
+      next.style.zIndex = '2';
+      next.play().catch(() => {});
+
+      curr.style.opacity = '0';
+      curr.style.zIndex = '1';
     }
 
     setTimeout(() => {
-      setCurrentIndex(nextIdx);
-      setIsTransitioning(false);
-      
-      if (currentVideo) {
-        currentVideo.style.opacity = '1';
-        currentVideo.style.zIndex = '2';
+      setCurrentIndex((prev) => (prev + 1) % VIDEOS.length);
+      isTransitioning.current = false;
+
+      if (curr) {
+        curr.style.opacity = '1';
+        curr.style.zIndex = '2';
       }
-      if (nextVideo) {
-        nextVideo.style.opacity = '0';
-        nextVideo.style.zIndex = '1';
+      if (next) {
+        next.style.opacity = '0';
+        next.style.zIndex = '1';
       }
-    }, 300);
-  }, [currentIndex, isTransitioning]);
-
-  // Prepara próximo vídeo
-  useEffect(() => {
-    const nextVideo = nextVideoRef.current;
-    if (!nextVideo) return;
-    
-    const nextIdx = (currentIndex + 1) % VIDEOS.length;
-    nextVideo.src = VIDEOS[nextIdx];
-    
-    if (!isIOS.current) nextVideo.load();
-  }, [currentIndex]);
-
-  // Visibility change
-  useEffect(() => {
-    const handleVisibility = () => {
-      const video = currentVideoRef.current;
-      if (!video) return;
-      
-      if (document.hidden) video.pause();
-      else video.play().catch(() => {});
-    };
-
-    document.addEventListener('visibilitychange', handleVisibility);
-    return () => document.removeEventListener('visibilitychange', handleVisibility);
+    }, 400);
   }, []);
 
-  const nextIdx = (currentIndex + 1) % VIDEOS.length;
+  // ── Pausa/retoma quando a aba fica oculta ──────────────────────
+  useEffect(() => {
+    const onVisibility = () => {
+      const v = videoRef.current;
+      if (!v) return;
+      if (document.hidden) v.pause();
+      else v.play().catch(() => {});
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, []);
+
+  // ── Tap manual caso autoplay esteja bloqueado ──────────────────
+  const handleTap = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.play().then(() => {
+      setIsVideoPlaying(true);
+      setNeedsTap(false);
+    }).catch(() => {});
+  }, []);
 
   return (
     <div className="fixed inset-0 w-full h-full bg-black overflow-hidden">
-      
-      {/* Fallback: Imagem enquanto carrega (iOS) */}
-      {showFallback && (
-        <div 
-          className="absolute inset-0 z-[5] bg-cover bg-center"
-          style={{ 
-            backgroundImage: 'url(/imagens/background.webp)',
-            filter: 'brightness(0.7)'
-          }}
-        />
-      )}
-      
-      {/* Loading spinner */}
-      {!isLoaded && !showFallback && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-black">
-          <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-        </div>
-      )}
-      
-      {/* Vídeo Atual */}
+
+      {/* ── Vídeo atual ── */}
       <video
-        ref={currentVideoRef}
-        key={`current-${currentIndex}`}
-        className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300"
-        style={{ opacity: isLoaded ? 1 : 0, zIndex: 2 }}
-        src={VIDEOS[currentIndex]}
+        ref={videoRef}
+        key={`v-${currentIndex}`}
+        className="absolute inset-0 w-full h-full object-cover"
+        style={{
+          opacity: isVideoPlaying ? 1 : 0,
+          zIndex: 3,
+          transition: 'opacity 0.7s ease',
+        }}
         muted
         playsInline
         webkit-playsinline="true"
-        preload="auto"
-        poster="/imagens/background.webp"
-        onEnded={handleVideoEnded}
-        onCanPlay={() => {
-          if (isIOS.current) {
-            const video = currentVideoRef.current;
-            if (video) {
-              video.play().then(() => {
-                setIsLoaded(true);
-                setShowFallback(false);
-              }).catch(() => {});
-            }
-          }
-        }}
-        onLoadedData={() => {
-          if (!isIOS.current) setIsLoaded(true);
-        }}
-      />
-      
-      {/* Próximo Vídeo */}
+        preload={isiOS.current ? 'metadata' : 'auto'}
+        onEnded={handleEnded}
+      >
+        {/* MP4 primeiro para iOS, WebM como alternativa */}
+        <source src={VIDEOS[currentIndex].mp4} type="video/mp4" />
+        <source src={VIDEOS[currentIndex].webm} type="video/webm" />
+      </video>
+
+      {/* ── Próximo vídeo (pré-carregado, invisível) ── */}
       <video
         ref={nextVideoRef}
-        className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300"
-        style={{ opacity: 0, zIndex: 1 }}
+        className="absolute inset-0 w-full h-full object-cover"
+        style={{ opacity: 0, zIndex: 2, transition: 'opacity 0.4s ease' }}
         muted
         playsInline
         webkit-playsinline="true"
         preload="none"
-        poster="/imagens/background.webp"
       />
 
-      {/* Botão play manual para iOS se autoplay falhar */}
-      {showFallback && (
+      {/* ── Botão de play caso autoplay esteja bloqueado (iOS low-power) ── */}
+      {needsTap && (
         <button
           className="absolute inset-0 z-20 flex items-center justify-center"
-          onClick={() => {
-            const video = currentVideoRef.current;
-            if (video) {
-              video.play().then(() => {
-                setIsLoaded(true);
-                setShowFallback(false);
-              }).catch(() => {});
-            }
-          }}
+          onClick={handleTap}
+          aria-label="Reproduzir vídeo"
         >
-          <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors">
-            <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M8 5v14l11-7z"/>
+          <div
+            className="w-20 h-20 rounded-full flex items-center justify-center backdrop-blur-md"
+            style={{
+              background: 'rgba(255,255,255,0.12)',
+              border: '1px solid rgba(255,255,255,0.18)',
+              transition: 'background 0.3s ease',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.22)')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.12)')}
+          >
+            <svg
+              className="w-8 h-8 text-white ml-1"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path d="M8 5v14l11-7z" />
             </svg>
           </div>
         </button>
       )}
+
     </div>
   );
 }
