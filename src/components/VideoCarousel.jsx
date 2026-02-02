@@ -1,19 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 
-// Vídeos: desktop (full HD) e mobile (720p comprimido pra iOS)
+// Vídeos com ambos os formatos — MP4 é obrigatório para iOS/Safari
 const VIDEOS = [
-  { webm: '/videos/01.webm', mp4: '/videos/01.mp4', mobile: '/videos/mobile/01.mp4' },
-  { webm: '/videos/02.webm', mp4: '/videos/02.mp4', mobile: '/videos/mobile/02.mp4' },
-  { webm: '/videos/03.webm', mp4: '/videos/03.mp4', mobile: '/videos/mobile/03.mp4' },
-  { webm: '/videos/04.webm', mp4: '/videos/04.mp4', mobile: '/videos/mobile/04.mp4' },
-  { webm: '/videos/05.webm', mp4: '/videos/05.mp4', mobile: '/videos/mobile/05.mp4' },
+  { webm: '/videos/01.webm', mp4: '/videos/01.mp4' },
+  { webm: '/videos/02.webm', mp4: '/videos/02.mp4' },
+  { webm: '/videos/03.webm', mp4: '/videos/03.mp4' },
+  { webm: '/videos/04.webm', mp4: '/videos/04.mp4' },
+  { webm: '/videos/05.webm', mp4: '/videos/05.mp4' },
 ];
-
-// Detecta mobile (tela pequena ou touch)
-const getIsMobile = () => {
-  if (typeof window === 'undefined') return false;
-  return window.innerWidth <= 768 || ('ontouchstart' in window && window.innerWidth <= 1024);
-};
 
 // Detecta se o dispositivo é iOS ou Safari (não suportam WebM)
 const getIsIOS = () => {
@@ -35,15 +29,10 @@ export default function VideoCarousel() {
   const nextVideoRef = useRef(null);
   const isTransitioning = useRef(false);
   const isiOS = useRef(getIsIOS());
-  const isMobile = useRef(getIsMobile());
 
   // Retorna a URL de vídeo correta pro dispositivo
   const getVideoSrc = useCallback(
-    (index) => {
-      if (isMobile.current) return VIDEOS[index].mobile;
-      if (isiOS.current) return VIDEOS[index].mp4;
-      return VIDEOS[index].webm;
-    },
+    (index) => (isiOS.current ? VIDEOS[index].mp4 : VIDEOS[index].webm),
     []
   );
 
@@ -163,15 +152,9 @@ export default function VideoCarousel() {
         preload={isiOS.current ? 'metadata' : 'auto'}
         onEnded={handleEnded}
       >
-        {/* Mobile: versão leve 720p | Desktop: MP4 full + WebM */}
-        {isMobile.current ? (
-          <source src={VIDEOS[currentIndex].mobile} type="video/mp4" />
-        ) : (
-          <>
-            <source src={VIDEOS[currentIndex].mp4} type="video/mp4" />
-            <source src={VIDEOS[currentIndex].webm} type="video/webm" />
-          </>
-        )}
+        {/* MP4 primeiro para iOS, WebM como alternativa */}
+        <source src={VIDEOS[currentIndex].mp4} type="video/mp4" />
+        <source src={VIDEOS[currentIndex].webm} type="video/webm" />
       </video>
 
       {/* ── Próximo vídeo (pré-carregado, invisível) ── */}
