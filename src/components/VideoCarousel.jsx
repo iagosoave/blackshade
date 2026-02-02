@@ -1,82 +1,48 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 
-// Detecta se é iOS/Safari (não suporta WebM)
+const VIDEOS = [
+  '/videos/01.webm',
+  '/videos/02.webm',
+  '/videos/03.webm',
+  '/videos/04.webm',
+  '/videos/05.webm'
+];
+
+// Detecta iOS/Safari
 const isIOSorSafari = () => {
   if (typeof window === 'undefined') return false;
-  
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+  const ua = navigator.userAgent;
+  const isIOS = /iPad|iPhone|iPod/.test(ua) || 
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  
-  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-  
+  const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
   return isIOS || isSafari;
-};
-
-// WebM para todos, MP4 apenas para iOS/Safari
-const getVideoSources = () => {
-  if (isIOSorSafari()) {
-    return [
-      '/videos/01.mp4',
-      '/videos/02.mp4',
-      '/videos/03.mp4',
-      '/videos/04.mp4',
-      '/videos/05.mp4'
-    ];
-  }
-  return [
-    '/videos/01.webm',
-    '/videos/02.webm',
-    '/videos/03.webm',
-    '/videos/04.webm',
-    '/videos/05.webm'
-  ];
 };
 
 export default function VideoCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [nextIndex, setNextIndex] = useState(1);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [videos] = useState(getVideoSources);
+  const [showFallback, setShowFallback] = useState(false);
   
   const currentVideoRef = useRef(null);
   const nextVideoRef = useRef(null);
-  const preloadedRef = useRef(new Set([0]));
   const isIOS = useRef(isIOSorSafari());
+  const loadTimeoutRef = useRef(null);
 
-  // Preload do próximo vídeo (menos agressivo em iOS)
-  const preloadNext = useCallback((index) => {
-    if (preloadedRef.current.has(index)) return;
-    
-    // Em iOS, limita preload para economizar recursos
-    if (isIOS.current && preloadedRef.current.size > 1) return;
-    
-    const video = document.createElement('video');
-    video.preload = isIOS.current ? 'metadata' : 'auto';
-    video.src = videos[index];
-    video.load();
-    preloadedRef.current.add(index);
-  }, [videos]);
-
-  // Prepara próximos vídeos
+  // Timeout - se não carregar em 5s no iOS, mostra fallback
   useEffect(() => {
-    const next = (currentIndex + 1) % videos.length;
-    const afterNext = (currentIndex + 2) % videos.length;
+    if (isIOS.current && !isLoaded) {
+      loadTimeoutRef.current = setTimeout(() => {
+        setShowFallback(true);
+        const video = currentVideoRef.current;
+        if (video) video.load();
+      }, 5000);
+    }
     
-    setNextIndex(next);
-    
-    // Delay maior para iOS
-    const delay = isIOS.current ? 1500 : 500;
-    
-    const timer = setTimeout(() => {
-      preloadNext(next);
-      if (!isIOS.current) {
-        preloadNext(afterNext);
-      }
-    }, delay);
-
-    return () => clearTimeout(timer);
-  }, [currentIndex, preloadNext, videos.length]);
+    return () => {
+      if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current);
+    };
+  }, [isLoaded]);
 
   // Inicia reprodução
   useEffect(() => {
@@ -86,53 +52,39 @@ export default function VideoCarousel() {
     const playVideo = async () => {
       try {
         video.currentTime = 0;
-        
-        // Delay para iOS processar
-        if (isIOS.current) {
-          await new Promise(resolve => setTimeout(resolve, 50));
-        }
-        
         await video.play();
         setIsLoaded(true);
+        setShowFallback(false);
+        if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current);
       } catch (err) {
-        // Autoplay bloqueado - espera interação
         const handleInteraction = () => {
-          video.play().catch(() => {});
-          setIsLoaded(true);
+          video.play().then(() => {
+            setIsLoaded(true);
+            setShowFallback(false);
+          }).catch(() => {});
         };
         document.addEventListener('click', handleInteraction, { once: true });
         document.addEventListener('touchstart', handleInteraction, { once: true });
       }
     };
 
-    if (video.readyState >= 3) {
+    const eventName = isIOS.current ? 'loadeddata' : 'canplaythrough';
+    
+    if (video.readyState >= (isIOS.current ? 2 : 3)) {
       playVideo();
     } else {
-      video.addEventListener('canplaythrough', playVideo, { once: true });
-      
-      // Timeout de segurança
-      const timeout = setTimeout(() => {
-        if (!isLoaded) playVideo();
-      }, 4000);
-      
-      return () => clearTimeout(timeout);
+      video.addEventListener(eventName, playVideo, { once: true });
     }
-  }, [currentIndex, isLoaded]);
 
-  // Prepara o próximo vídeo
-  useEffect(() => {
-    const nextVideo = nextVideoRef.current;
-    if (!nextVideo) return;
-
-    nextVideo.src = videos[nextIndex];
-    nextVideo.load();
-  }, [nextIndex, videos]);
+    return () => video.removeEventListener(eventName, playVideo);
+  }, [currentIndex]);
 
   // Handler quando vídeo termina
   const handleVideoEnded = useCallback(() => {
     if (isTransitioning) return;
     setIsTransitioning(true);
 
+    const nextIdx = (currentIndex + 1) % VIDEOS.length;
     const nextVideo = nextVideoRef.current;
     const currentVideo = currentVideoRef.current;
 
@@ -146,7 +98,7 @@ export default function VideoCarousel() {
     }
 
     setTimeout(() => {
-      setCurrentIndex(nextIndex);
+      setCurrentIndex(nextIdx);
       setIsTransitioning(false);
       
       if (currentVideo) {
@@ -158,29 +110,51 @@ export default function VideoCarousel() {
         nextVideo.style.zIndex = '1';
       }
     }, 300);
-  }, [nextIndex, isTransitioning]);
+  }, [currentIndex, isTransitioning]);
 
-  // Pausa quando tab não visível
+  // Prepara próximo vídeo
+  useEffect(() => {
+    const nextVideo = nextVideoRef.current;
+    if (!nextVideo) return;
+    
+    const nextIdx = (currentIndex + 1) % VIDEOS.length;
+    nextVideo.src = VIDEOS[nextIdx];
+    
+    if (!isIOS.current) nextVideo.load();
+  }, [currentIndex]);
+
+  // Visibility change
   useEffect(() => {
     const handleVisibility = () => {
       const video = currentVideoRef.current;
       if (!video) return;
       
-      if (document.hidden) {
-        video.pause();
-      } else {
-        video.play().catch(() => {});
-      }
+      if (document.hidden) video.pause();
+      else video.play().catch(() => {});
     };
 
     document.addEventListener('visibilitychange', handleVisibility);
     return () => document.removeEventListener('visibilitychange', handleVisibility);
   }, []);
 
+  const nextIdx = (currentIndex + 1) % VIDEOS.length;
+
   return (
     <div className="fixed inset-0 w-full h-full bg-black overflow-hidden">
-      {/* Loading */}
-      {!isLoaded && (
+      
+      {/* Fallback: Imagem enquanto carrega (iOS) */}
+      {showFallback && (
+        <div 
+          className="absolute inset-0 z-[5] bg-cover bg-center"
+          style={{ 
+            backgroundImage: 'url(/imagens/background.webp)',
+            filter: 'brightness(0.7)'
+          }}
+        />
+      )}
+      
+      {/* Loading spinner */}
+      {!isLoaded && !showFallback && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-black">
           <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin" />
         </div>
@@ -191,15 +165,28 @@ export default function VideoCarousel() {
         ref={currentVideoRef}
         key={`current-${currentIndex}`}
         className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300"
-        style={{ opacity: 1, zIndex: 2 }}
-        src={videos[currentIndex]}
+        style={{ opacity: isLoaded ? 1 : 0, zIndex: 2 }}
+        src={VIDEOS[currentIndex]}
         muted
-        loop={false}
         playsInline
         webkit-playsinline="true"
-        preload={isIOS.current ? "metadata" : "auto"}
+        preload="auto"
+        poster="/imagens/background.webp"
         onEnded={handleVideoEnded}
-        onLoadedData={() => setIsLoaded(true)}
+        onCanPlay={() => {
+          if (isIOS.current) {
+            const video = currentVideoRef.current;
+            if (video) {
+              video.play().then(() => {
+                setIsLoaded(true);
+                setShowFallback(false);
+              }).catch(() => {});
+            }
+          }
+        }}
+        onLoadedData={() => {
+          if (!isIOS.current) setIsLoaded(true);
+        }}
       />
       
       {/* Próximo Vídeo */}
@@ -210,8 +197,31 @@ export default function VideoCarousel() {
         muted
         playsInline
         webkit-playsinline="true"
-        preload="metadata"
+        preload="none"
+        poster="/imagens/background.webp"
       />
+
+      {/* Botão play manual para iOS se autoplay falhar */}
+      {showFallback && (
+        <button
+          className="absolute inset-0 z-20 flex items-center justify-center"
+          onClick={() => {
+            const video = currentVideoRef.current;
+            if (video) {
+              video.play().then(() => {
+                setIsLoaded(true);
+                setShowFallback(false);
+              }).catch(() => {});
+            }
+          }}
+        >
+          <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors">
+            <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+          </div>
+        </button>
+      )}
     </div>
   );
 }
